@@ -813,7 +813,7 @@ local function create_toggle(name, order)
     end)
 end
 
-local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer"}
+local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer"}
 
 for i, t in ipairs(toggles) do
     create_toggle(t, i)
