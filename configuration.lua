@@ -406,42 +406,41 @@ function RGB_Vehicle(Boolean)
     end
 end
 
-task.defer(function()
-    getgenv().AntiOutfitStealerConn = getgenv().AntiOutfitStealerConn or nil
-    getgenv().ToggleAntiFit_Stealer = function(state)
-        local RunService = getgenv().RunService
+getgenv().AntiOutfitStealerConn = getgenv().AntiOutfitStealerConn or nil
 
-        if not state then
-            getgenv().anti_outfit_stealer = false
+getgenv().ToggleAntiFit_Stealer = function(state)
+    local RunService = getgenv().RunService
 
-            if getgenv().AntiOutfitStealerConn then
-                getgenv().AntiOutfitStealerConn:Disconnect()
-                getgenv().AntiOutfitStealerConn = nil
-            end
+    if not state then
+        getgenv().anti_outfit_stealer = false
 
-            local bio = getgenv().LocalPlayer:GetAttribute("bio")
-
-            if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
-                getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
-                getgenv().notify("Success", "Bio changed, reverted change.", 2)
-            else
-                getgenv().notify("Warning", "Bio not found, cannot unlock, disabled loop.", 5)
-            end
-            return
-        else
-            getgenv().AutoLockOn = true
+        if getgenv().AntiOutfitStealerConn then
+            getgenv().AntiOutfitStealerConn:Disconnect()
+            getgenv().AntiOutfitStealerConn = nil
         end
 
-        getgenv().AutoLockConnection = RunService.Heartbeat:Connect(function()
-            local bio = getgenv().LocalPlayer:GetAttribute("bio")
+        local bio = getgenv().LocalPlayer:GetAttribute("bio")
 
-            if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
-                getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
-                getgenv().notify("Success", "Bio changed, reverted change.", 2)
-            end
-        end)
+        if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
+            getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
+            getgenv().notify("Success", "Bio changed, reverted change.", 2)
+        else
+            getgenv().notify("Warning", "Bio not found, cannot change, disabled loop.", 5)
+        end
+        return 
+    else
+        getgenv().anti_outfit_stealer = true
     end
-end)
+
+    getgenv().AntiOutfitStealerConn = RunService.Heartbeat:Connect(function()
+        local bio = getgenv().LocalPlayer:GetAttribute("bio")
+
+        if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
+            getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
+            getgenv().notify("Success", "Bio changed, reverted change.", 2)
+        end
+    end)
+end
 
 local Old_Bio = getgenv().LocalPlayer:GetAttribute("bio") or "DEFAULT"
 wait(0.2)
@@ -457,6 +456,10 @@ function anti_outfit_copier(toggle)
         wait(0.1)
         getgenv().ToggleAntiFit_Stealer(true)
     elseif toggle == false then
+        if not getgenv().anti_outfit_stealer then
+            return getgenv().notify("Error", "Anti Outfit Stealer is already enabled!", 5)
+        end
+
         getgenv().anti_outfit_stealer = false
         getgenv().ToggleAntiFit_Stealer(false)
         getgenv().Send("bio", tostring(Old_Bio))
@@ -478,11 +481,13 @@ function anti_sit_func(toggle)
         wait(0.2)
         getgenv().Not_Ever_Sitting = true
 
-        while getgenv().Not_Ever_Sitting == true do
-        task.wait()
-            getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-            require(getgenv().Game_Folder:FindFirstChild("Seat")).enabled.set(false)
-        end
+        task.spawn(function()
+            while getgenv().Not_Ever_Sitting == true do
+            task.wait()
+                getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+                require(getgenv().Game_Folder:FindFirstChild("Seat")).enabled.set(false)
+            end
+        end)
     elseif toggle == false then
         if not getgenv().Not_Ever_Sitting then
             return getgenv().notify("Warning", "AntiSit is not enabled!", 5)
