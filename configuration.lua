@@ -160,14 +160,16 @@ function RGB_Phone(Boolean)
         wait(0.1)
         getgenv().notify("Success", "Started RGB/Rainbow Phone.", 5)
         getgenv().RGB_Rainbow_Phone = true
-        while getgenv().RGB_Rainbow_Phone == true do
-        task.wait(0)
-            for _, color in ipairs(colors) do
-                if getgenv().RGB_Rainbow_Phone ~= true then return end
-                task.wait(0)
-                change_phone_color(color)
+        task.spawn(function()
+            while getgenv().RGB_Rainbow_Phone == true do
+            task.wait(0)
+                for _, color in ipairs(colors) do
+                    if getgenv().RGB_Rainbow_Phone ~= true then return end
+                    task.wait(0)
+                    change_phone_color(color)
+                end
             end
-        end
+        end)
     elseif Boolean == false then
         if not getgenv().RGB_Rainbow_Phone then
             return getgenv().notify("Warning", "Rainbow Phone is not enabled.", 5)
@@ -368,8 +370,6 @@ getgenv().Toggle_AntiFling_Boolean_Func = function(toggled)
 end
 
 function RGB_Vehicle(Boolean)
-    getgenv().Rainbow_Vehicle = Boolean
-
     local colors = {
         Color3.fromRGB(255, 255, 255),
         Color3.fromRGB(128, 128, 128),
@@ -387,15 +387,18 @@ function RGB_Vehicle(Boolean)
     }
 
     if Boolean == true then
-        getgenv().notify("Success", "[Enabled]: Rainbow Vehicle.", 4)
-        while getgenv().Rainbow_Vehicle == true do
-            task.wait(0)
-            for _, color in ipairs(colors) do
+        getgenv().notify("Success", "[Enabled]: Rainbow Vehicle.", 5)
+        getgenv().Rainbow_Vehicle = true
+        task.spawn(function()
+            while getgenv().Rainbow_Vehicle == true do
                 task.wait(0)
-                if getgenv().Rainbow_Vehicle ~= true then return end
-                change_vehicle_color(color, get_vehicle())
+                for _, color in ipairs(colors) do
+                    task.wait(0)
+                    if getgenv().Rainbow_Vehicle ~= true then return end
+                    change_vehicle_color(color, get_vehicle())
+                end
             end
-        end
+        end)
     elseif Boolean == false then
         getgenv().Rainbow_Vehicle = false
         Boolean = false
