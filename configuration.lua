@@ -137,8 +137,6 @@ function change_phone_color(New_Color)
 end
 task.wait(0.2)
 function RGB_Phone(Boolean)
-    getgenv().RGB_Rainbow_Phone = Boolean
-
     local colors = {
         Color3.fromRGB(255, 255, 255),
         Color3.fromRGB(128, 128, 128),
@@ -159,8 +157,9 @@ function RGB_Phone(Boolean)
         if getgenv().RGB_Rainbow_Phone then
             return getgenv().notify("Warning", "Rainbow Phone is already enabled.", 5)
         end
-        wait()
+        wait(0.1)
         getgenv().notify("Success", "Started RGB/Rainbow Phone.", 5)
+        getgenv().RGB_Rainbow_Phone = true
         while getgenv().RGB_Rainbow_Phone == true do
         task.wait(0)
             for _, color in ipairs(colors) do
