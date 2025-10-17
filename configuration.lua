@@ -406,41 +406,42 @@ function RGB_Vehicle(Boolean)
     end
 end
 
-getgenv().AntiOutfitStealerConn = getgenv().AntiOutfitStealerConn or nil
-wait()
-getgenv().ToggleAntiFit_Stealer = function(state)
-    local RunService = getgenv().RunService
+task.defer(function()
+    getgenv().AntiOutfitStealerConn = getgenv().AntiOutfitStealerConn or nil
+    getgenv().ToggleAntiFit_Stealer = function(state)
+        local RunService = getgenv().RunService
 
-    if not state then
-        getgenv().anti_outfit_stealer = false
+        if not state then
+            getgenv().anti_outfit_stealer = false
 
-        if getgenv().AntiOutfitStealerConn then
-            getgenv().AntiOutfitStealerConn:Disconnect()
-            getgenv().AntiOutfitStealerConn = nil
-        end
+            if getgenv().AntiOutfitStealerConn then
+                getgenv().AntiOutfitStealerConn:Disconnect()
+                getgenv().AntiOutfitStealerConn = nil
+            end
 
-        local bio = getgenv().LocalPlayer:GetAttribute("bio")
+            local bio = getgenv().LocalPlayer:GetAttribute("bio")
 
-        if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
-            getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
-            getgenv().notify("Success", "Bio changed, reverted change.", 2)
+            if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
+                getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
+                getgenv().notify("Success", "Bio changed, reverted change.", 2)
+            else
+                getgenv().notify("Warning", "Bio not found, cannot unlock, disabled loop.", 5)
+            end
+            return
         else
-            getgenv().notify("Warning", "Bio not found, cannot unlock, disabled loop.", 5)
+            getgenv().AutoLockOn = true
         end
-        return 
-    else
-        getgenv().AutoLockOn = true
+
+        getgenv().AutoLockConnection = RunService.Heartbeat:Connect(function()
+            local bio = getgenv().LocalPlayer:GetAttribute("bio")
+
+            if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
+                getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
+                getgenv().notify("Success", "Bio changed, reverted change.", 2)
+            end
+        end)
     end
-
-    getgenv().AutoLockConnection = getgenv().RunService.Heartbeat:Connect(function()
-        local bio = getgenv().LocalPlayer:GetAttribute("bio")
-
-        if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
-            getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
-            getgenv().notify("Success", "Bio changed, reverted change.", 2)
-        end
-    end)
-end
+end)
 
 local Old_Bio = getgenv().LocalPlayer:GetAttribute("bio") or "DEFAULT"
 wait(0.2)
