@@ -658,6 +658,7 @@ end
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FlamesAdminGUI"
 ScreenGui.Parent = getgenv().CoreGui
+ScreenGui.Enabled = false
 ScreenGui.ResetOnSpawn = false
 
 local Frame = Instance.new("Frame")
