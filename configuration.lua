@@ -518,7 +518,7 @@ function anti_void(toggle)
     elseif toggle == false then
         if not getgenv().originalFPDH then
             getgenv().originalFPDH = -500
-            return getgenv().notify("Error", "Original destroy height doesn't exist!", 5)
+            return getgenv().notify("Error", "Original FPDH didn't exist at runtime, try this command again!", 6)
         end
         if not getgenv().Anti_Void_Enabled_Bool then
             return getgenv().notify("Warning", "Anti-Void has not been enabled!", 5)
