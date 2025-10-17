@@ -35,7 +35,8 @@ local default_config = {
     AntiVoid = "disabled",
     NoClip = "disabled",
     NoSit = "disabled",
-    AntiOutfitStealer = "disabled"
+    AntiOutfitStealer = "disabled",
+    JobSpammer = "disabled"
 }
 
 function set_enrolled_state(state)
@@ -603,6 +604,41 @@ getgenv().DisableVehicleDestroyer = function()
 	clearConnections()
 end
 
+function job_spammer(toggle)
+    if toggle == true then
+        if getgenv().Every_Job then
+            return getgenv().notify("Warning", "Job spammer is already enabled! disable it first.", 5)
+        end
+        wait()
+        getgenv().Every_Job = true
+        task.spawn(function()
+            while getgenv().Every_Job == true do
+            task.wait(0)
+                getgenv().Send("job", "Police")
+                task.wait(0)
+                getgenv().Send("job", "Firefighter")
+                task.wait(0)
+                getgenv().Send("job", "Baker")
+                task.wait(0)
+                getgenv().Send("job", "Pizza Worker")
+                task.wait(0)
+                getgenv().Send("job", "Barista")
+                task.wait(0)
+                getgenv().Send("job", "Doctor")
+                task.wait(0)
+            end
+        end)
+    elseif toggle == false then
+        if not getgenv().Every_Job then
+            return getgenv().notify("Warning", "Job spammer is not enabled! enable it first.", 5)
+        end
+
+        getgenv().Every_Job = false
+    else
+        return 
+    end
+end
+
 function anti_car_fling(toggle)
     if toggle == true then
         if getgenv().VehicleDestroyer_Enabled then
@@ -744,6 +780,12 @@ local function handle_toggle(name, state)
             anti_outfit_copier(true)
         else
             anti_outfit_copier(false)
+        end
+    elseif name == "JobSpammer" then
+        if state == "enabled" then
+            job_spammer(true)
+        else
+            job_spammer(false)
         end
     end
 end
