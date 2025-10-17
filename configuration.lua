@@ -27,6 +27,7 @@ end
 
 local config_path = "Flames_Admin_Config.json"
 local default_config = {
+    Enrolled = "disabled",
     RainbowVehicle = "disabled",
     RainbowPhone = "disabled",
     AntiCarFling = "disabled",
@@ -36,6 +37,24 @@ local default_config = {
     NoSit = "disabled",
     AntiOutfitStealer = "disabled"
 }
+
+function set_enrolled_state(state)
+    local valid = (state == "enabled" or state == "disabled")
+    if not valid then
+        return 
+    end
+
+    if not isfile(config_path) then
+        writefile(config_path, HttpService:JSONEncode(default_config))
+    end
+
+    local config = HttpService:JSONDecode(readfile(config_path))
+
+    config.Enrolled = state
+    writefile(config_path, HttpService:JSONEncode(config))
+end
+wait(0.1)
+getgenv().set_enrolled_state = set_enrolled_state
 
 local function Get_Char(Player)
     if not Player or not Player.Character then
@@ -630,6 +649,10 @@ end
 local config = HttpService:JSONDecode(readfile(config_path))
 local function save_config()
    writefile(config_path, HttpService:JSONEncode(config))
+end
+
+if config.Enrolled ~= "enabled" then
+    return 
 end
 
 local ScreenGui = Instance.new("ScreenGui")
