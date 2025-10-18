@@ -17,18 +17,42 @@ getgenv().RunService = RunService
 
 local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/EnterpriseExperience/MicUpSource/refs/heads/main/Notification_Lib.lua"))()
 
+local function retrieve_executor()
+    local name
+    if identifyexecutor then
+        name = identifyexecutor()
+    end
+    return { Name = name or "Unknown Executor" }
+end
+
+local function identify_executor()
+    local executorDetails = retrieve_executor()
+    return tostring(executorDetails.Name)
+end
+
+wait(0.1)
+local executor_string = identify_executor()
+
+local function executor_contains(substr)
+    if type(executor_string) ~= "string" then
+        return false
+    end
+
+    return string.find(string.lower(executor_string), string.lower(substr), 1, true) ~= nil
+end
+wait(0.2)
 if executor_contains("LX63") then
-   function notify(notif_type, msg, duration)
-      NotifyLib:StarterGui_Notify(tostring(notif_type), tostring(msg), tonumber(duration))
-   end
-   wait(0.1)
-   getgenv().notify = notify
+    function notify(notif_type, msg, duration)
+        NotifyLib:StarterGui_Notify(tostring(notif_type), tostring(msg), tonumber(duration))
+    end
+    wait(0.1)
+    getgenv().notify = notify
 else
-   function notify(notif_type, msg, duration)
-      NotifyLib:External_Notification(tostring(notif_type), tostring(msg), tonumber(duration))
-   end
-   wait(0.1)
-   getgenv().notify = notify
+    function notify(notif_type, msg, duration)
+        NotifyLib:External_Notification(tostring(notif_type), tostring(msg), tonumber(duration))
+    end
+    wait(0.1)
+    getgenv().notify = notify
 end
 
 local config_path = "Flames_Admin_Config.json"
