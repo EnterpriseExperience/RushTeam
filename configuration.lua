@@ -17,12 +17,18 @@ getgenv().RunService = RunService
 
 local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/EnterpriseExperience/MicUpSource/refs/heads/main/Notification_Lib.lua"))()
 
-if not getgenv().notify then
-    function notify(notif_type, msg, duration)
-        NotifyLib:External_Notification(tostring(notif_type), tostring(msg), tonumber(duration))
-    end
-    wait(0.1)
-    getgenv().notify = notify
+if executor_contains("LX63") then
+   function notify(notif_type, msg, duration)
+      NotifyLib:StarterGui_Notify(tostring(notif_type), tostring(msg), tonumber(duration))
+   end
+   wait(0.1)
+   getgenv().notify = notify
+else
+   function notify(notif_type, msg, duration)
+      NotifyLib:External_Notification(tostring(notif_type), tostring(msg), tonumber(duration))
+   end
+   wait(0.1)
+   getgenv().notify = notify
 end
 
 local config_path = "Flames_Admin_Config.json"
@@ -505,7 +511,7 @@ function anti_sit_func(toggle)
             while getgenv().Not_Ever_Sitting == true do
             task.wait()
                 getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-                require(getgenv().Game_Folder:FindFirstChild("Seat")).enabled.set(false)
+                getgenv().Seat.enabled.set(false)
             end
         end)
     elseif toggle == false then
@@ -516,7 +522,7 @@ function anti_sit_func(toggle)
         getgenv().Not_Ever_Sitting = false
         wait(0.2)
         getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-        require(getgenv().Game_Folder:FindFirstChild("Seat")).enabled.set(true)
+        getgenv().Seat.enabled.set(true)
         wait(0.1)
         getgenv().notify("Success", "Sitting is now enabled!", 5)
         Phone.show_notification("Success:", "Sitting is now enabled!", "Normal")
