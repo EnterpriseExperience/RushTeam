@@ -86,6 +86,18 @@ function set_enrolled_state(state)
 end
 wait(0.1)
 getgenv().set_enrolled_state = set_enrolled_state
+wait(0.1)
+function get_enrolled_state()
+    if not isfile(config_path) then
+        writefile(config_path, HttpService:JSONEncode(default_config))
+    end
+
+    local config = HttpService:JSONDecode(readfile(config_path))
+    return config.Enrolled
+end
+
+wait(0.1)
+getgenv().get_enrolled_state = get_enrolled_state
 
 local function Get_Char(Player)
     if not Player or not Player.Character then
