@@ -152,7 +152,7 @@ wait(0.1)
 getgenv().show_notification = show_notification
 getgenv().Modules = Modules
 getgenv().Core = Core
-getgenv().Game_Folder = Game
+getgenv().Game_Folder = Game_Folder
 getgenv().Net = Network
 wait(0.1)
 function send_function(...)
