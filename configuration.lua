@@ -568,8 +568,37 @@ function anti_outfit_copier(toggle)
     end
 end
 
+local is_enabled
+
+local function find_seat_module()
+    for _, obj in pairs(getgc(true)) do
+        if typeof(obj) == "table" then
+            for _, v in pairs(obj) do
+                if typeof(v) == "function" then
+                    local ok, info = pcall(debug.getinfo, v)
+                    if ok and info and info.source and info.source:find("Seat", 1, true) then
+                        getgenv().Seat = obj
+                        return obj
+                    end
+                end
+            end
+        end
+    end
+end
+
+wait(0.2)
 function anti_sit_func(toggle)
-    local is_enabled = getgenv().Seat.enabled.get()
+    if executor_contains("LX63") and getgenv().Seat then
+        getgenv().Seat = find_seat_module()
+    elseif not executor_contains("LX63") and getgenv().Seat then
+        is_enabled = getgenv().Seat.enabled.get()
+    elseif not getgenv().Seat then
+        if executor_contains("LX63") then
+            getgenv().Seat = find_seat_module()
+        else
+            getgenv().Seat = require(getgenv().Game_Folder:FindFirstChild("Seat"))
+        end
+    end
     
     if toggle == true then
         if getgenv().Not_Ever_Sitting then
