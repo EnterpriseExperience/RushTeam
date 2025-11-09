@@ -201,23 +201,27 @@ end
 
 Dynamic_Character_Updater(getgenv().Character)
 task.wait(0.2)
-getgenv().LocalPlayer.CharacterAdded:Connect(function(newCharacter)
-    task.wait(0.2)
-    Dynamic_Character_Updater(newCharacter)
-    repeat wait() until newCharacter:FindFirstChildWhichIsA("Humanoid") and newCharacter:FindFirstChild("HumanoidRootPart")
-    wait(0.5)
-    getgenv().Character = newCharacter
-    wait(0.2)
-    getgenv().HumanoidRootPart = SafeGetHRP(newCharacter)
-    getgenv().Humanoid = SafeGetHumanoid(newCharacter)
-    getgenv().Head = SafeGetHead(newCharacter)
-    wait(0.3)
-    if not getgenv().Humanoid then
-        getgenv().Humanoid = getgenv().Character:WaitForChild("Humanoid", 5)
-    end
-    wait(0.2)
-    Dynamic_Character_Updater(newCharacter)
-end)
+if not getgenv().SetupCharAdded_Conn then
+    getgenv().LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+        task.wait(0.2)
+        Dynamic_Character_Updater(newCharacter)
+        repeat wait() until newCharacter:FindFirstChildWhichIsA("Humanoid") and newCharacter:FindFirstChild("HumanoidRootPart")
+        wait(0.5)
+        getgenv().Character = newCharacter
+        wait(0.2)
+        getgenv().HumanoidRootPart = SafeGetHRP(newCharacter)
+        getgenv().Humanoid = SafeGetHumanoid(newCharacter)
+        getgenv().Head = SafeGetHead(newCharacter)
+        wait(0.3)
+        if not getgenv().Humanoid then
+            getgenv().Humanoid = getgenv().Character:WaitForChild("Humanoid", 5)
+        end
+        wait(0.2)
+        Dynamic_Character_Updater(newCharacter)
+    end)
+    wait(0.1)
+    getgenv().SetupCharAdded_Conn = true
+end
 
 getgenv().AntiFling_Tracked = getgenv().AntiFling_Tracked or setmetatable({}, { __mode = "k" })
 getgenv().AntiFling_Signals = getgenv().AntiFling_Signals or setmetatable({}, { __mode = "k" })
@@ -286,100 +290,110 @@ function RGB_Phone(Boolean)
     end
 end
 
-getgenv().AntiFling_SafeSetCanCollide = function(part, value)
-    if typeof(part) == "Instance" and part:IsA("BasePart") then
-        pcall(function()
-            if part.CanCollide ~= value then
-                part.CanCollide = value
+if not getgenv().AntiFling_SafeSetCanCollide then
+    getgenv().AntiFling_SafeSetCanCollide = function(part, value)
+        if typeof(part) == "Instance" and part:IsA("BasePart") then
+            pcall(function()
+                if part.CanCollide ~= value then
+                    part.CanCollide = value
+                end
+            end)
+        end
+    end
+end
+
+if not getgenv().AntiFling_Apply then
+    getgenv().AntiFling_Apply = function(part)
+        if not (part and part:IsA("BasePart")) or tracked[part] then return end
+        tracked[part] = true
+        getgenv().AntiFling_SafeSetCanCollide(part, false)
+
+        signals[part] = part:GetPropertyChangedSignal("CanCollide"):Connect(function()
+            if part and part.Parent and part.CanCollide ~= false then
+                getgenv().AntiFling_SafeSetCanCollide(part, false)
             end
         end)
     end
 end
 
-getgenv().AntiFling_Apply = function(part)
-    if not (part and part:IsA("BasePart")) or tracked[part] then return end
-    tracked[part] = true
-    getgenv().AntiFling_SafeSetCanCollide(part, false)
-
-    signals[part] = part:GetPropertyChangedSignal("CanCollide"):Connect(function()
-        if part and part.Parent and part.CanCollide ~= false then
-            getgenv().AntiFling_SafeSetCanCollide(part, false)
-        end
-    end)
-end
-
-getgenv().AntiFling_ProtectCharacter = function(char)
-    if not char then return end
-
-    for _, inst in ipairs(char:GetDescendants()) do
-        if inst:IsA("BasePart") then
-            getgenv().AntiFling_Apply(inst)
-        end
-    end
-
-    char.DescendantAdded:Connect(function(inst)
-        if inst:IsA("BasePart") then
-            getgenv().AntiFling_Apply(inst)
-        end
-    end)
-
-    char.DescendantRemoving:Connect(function(inst)
-        if tracked[inst] then
-            if signals[inst] then
-                signals[inst]:Disconnect()
-                signals[inst] = nil
-            end
-            tracked[inst] = nil
-        end
-    end)
-end
-
-getgenv().AntiFling_HookPlayer = function(plr)
-    if plr == LocalPlayer then return end
-    if plr.Character then
-        getgenv().AntiFling_ProtectCharacter(plr.Character)
-    end
-    plr.CharacterAdded:Connect(getgenv().AntiFling_ProtectCharacter)
-end
-
-getgenv().EnableAntiFling = function()
-    if getgenv().AntiFling_Enabled then
-        return getgenv().notify("Error", "Anti Fling is already enabled!", 5)
-    end
-    getgenv().AntiFling_Enabled = true
-
-    for _, plr in ipairs(Players:GetPlayers()) do
-        getgenv().AntiFling_HookPlayer(plr)
-    end
-
-    getgenv().AntiFling_PlayerAddedConn = Players.PlayerAdded:Connect(getgenv().AntiFling_HookPlayer)
-    getgenv().AntiFling_PlayerRemovingConn = Players.PlayerRemoving:Connect(function(plr)
-        if plr == LocalPlayer then return end
-        local char = plr.Character
+if not getgenv().AntiFling_ProtectCharacter then
+    getgenv().AntiFling_ProtectCharacter = function(char)
         if not char then return end
 
-        for _, part in ipairs(char:GetDescendants()) do
-            if tracked[part] then
-                if signals[part] then
-                    signals[part]:Disconnect()
-                    signals[part] = nil
-                end
-                tracked[part] = nil
+        for _, inst in ipairs(char:GetDescendants()) do
+            if inst:IsA("BasePart") then
+                getgenv().AntiFling_Apply(inst)
             end
         end
-    end)
 
-    getgenv().AntiFling_SteppedConnection = RunService.Stepped:Connect(function()
-        for part in pairs(tracked) do
-            if typeof(part) == "Instance" and part:IsA("BasePart") and part.Parent then
-                if part.CanCollide ~= false then
-                    getgenv().AntiFling_SafeSetCanCollide(part, false)
+        char.DescendantAdded:Connect(function(inst)
+            if inst:IsA("BasePart") then
+                getgenv().AntiFling_Apply(inst)
+            end
+        end)
+
+        char.DescendantRemoving:Connect(function(inst)
+            if tracked[inst] then
+                if signals[inst] then
+                    signals[inst]:Disconnect()
+                    signals[inst] = nil
+                end
+                tracked[inst] = nil
+            end
+        end)
+    end
+end
+
+if not getgenv().AntiFling_HookPlayer then
+    getgenv().AntiFling_HookPlayer = function(plr)
+        if plr == LocalPlayer then return end
+        if plr.Character then
+            getgenv().AntiFling_ProtectCharacter(plr.Character)
+        end
+        plr.CharacterAdded:Connect(getgenv().AntiFling_ProtectCharacter)
+    end
+end
+
+if not getgenv().EnableAntiFling then
+    getgenv().EnableAntiFling = function()
+        if getgenv().AntiFling_Enabled then
+            return getgenv().notify("Error", "Anti Fling is already enabled!", 5)
+        end
+        getgenv().AntiFling_Enabled = true
+
+        for _, plr in ipairs(Players:GetPlayers()) do
+            getgenv().AntiFling_HookPlayer(plr)
+        end
+
+        getgenv().AntiFling_PlayerAddedConn = Players.PlayerAdded:Connect(getgenv().AntiFling_HookPlayer)
+        getgenv().AntiFling_PlayerRemovingConn = Players.PlayerRemoving:Connect(function(plr)
+            if plr == LocalPlayer then return end
+            local char = plr.Character
+            if not char then return end
+
+            for _, part in ipairs(char:GetDescendants()) do
+                if tracked[part] then
+                    if signals[part] then
+                        signals[part]:Disconnect()
+                        signals[part] = nil
+                    end
+                    tracked[part] = nil
                 end
             end
-        end
-    end)
+        end)
 
-    getgenv().notify("Success", "Anti Fling has been enabled.", 5)
+        getgenv().AntiFling_SteppedConnection = RunService.Stepped:Connect(function()
+            for part in pairs(tracked) do
+                if typeof(part) == "Instance" and part:IsA("BasePart") and part.Parent then
+                    if part.CanCollide ~= false then
+                        getgenv().AntiFling_SafeSetCanCollide(part, false)
+                    end
+                end
+            end
+        end)
+
+        getgenv().notify("Success", "Anti Fling has been enabled.", 5)
+    end
 end
 
 getgenv().Noclip_Enabled = false
@@ -426,46 +440,52 @@ local function ToggleNoclip(toggle)
     end
 end
 
-getgenv().Toggleable_Noclip = ToggleNoclip
-
-getgenv().DisableAntiFling = function()
-    if not getgenv().AntiFling_Enabled then
-        return getgenv().notify("Error", "Anti Fling is not enabled!", 5)
-    end
-    getgenv().AntiFling_Enabled = false
-
-    if getgenv().AntiFling_SteppedConnection then
-        getgenv().AntiFling_SteppedConnection:Disconnect()
-        getgenv().AntiFling_SteppedConnection = nil
-    end
-    if getgenv().AntiFling_PlayerAddedConn then
-        getgenv().AntiFling_PlayerAddedConn:Disconnect()
-        getgenv().AntiFling_PlayerAddedConn = nil
-    end
-    if getgenv().AntiFling_PlayerRemovingConn then
-        getgenv().AntiFling_PlayerRemovingConn:Disconnect()
-        getgenv().AntiFling_PlayerRemovingConn = nil
-    end
-
-    for part, conn in pairs(signals) do
-        if conn.Disconnect then
-            pcall(conn.Disconnect, conn)
-        end
-    end
-
-    table.clear(signals)
-    table.clear(tracked)
-
-    getgenv().notify("Success", "Anti Fling has been disabled.", 5)
+if not getgenv().Toggleable_Noclip then
+    getgenv().Toggleable_Noclip = ToggleNoclip
 end
 
-getgenv().Toggle_AntiFling_Boolean_Func = function(toggled)
-    if toggled == true then
-        getgenv().EnableAntiFling()
-    elseif toggled == false then
-        getgenv().DisableAntiFling()
-    else
-        return getgenv().notify("Warning", "[Invalid arguments]: Expected true/false brocaroni and cheese.", 5)
+if not getgenv().DisableAntiFling then
+    getgenv().DisableAntiFling = function()
+        if not getgenv().AntiFling_Enabled then
+            return getgenv().notify("Error", "Anti Fling is not enabled!", 5)
+        end
+        getgenv().AntiFling_Enabled = false
+
+        if getgenv().AntiFling_SteppedConnection then
+            getgenv().AntiFling_SteppedConnection:Disconnect()
+            getgenv().AntiFling_SteppedConnection = nil
+        end
+        if getgenv().AntiFling_PlayerAddedConn then
+            getgenv().AntiFling_PlayerAddedConn:Disconnect()
+            getgenv().AntiFling_PlayerAddedConn = nil
+        end
+        if getgenv().AntiFling_PlayerRemovingConn then
+            getgenv().AntiFling_PlayerRemovingConn:Disconnect()
+            getgenv().AntiFling_PlayerRemovingConn = nil
+        end
+
+        for part, conn in pairs(signals) do
+            if conn.Disconnect then
+                pcall(conn.Disconnect, conn)
+            end
+        end
+
+        table.clear(signals)
+        table.clear(tracked)
+
+        getgenv().notify("Success", "Anti Fling has been disabled.", 5)
+    end
+end
+
+if not getgenv().Toggle_AntiFling_Boolean_Func then
+    getgenv().Toggle_AntiFling_Boolean_Func = function(toggled)
+        if toggled == true then
+            getgenv().EnableAntiFling()
+        elseif toggled == false then
+            getgenv().DisableAntiFling()
+        else
+            return getgenv().notify("Warning", "[Invalid arguments]: Expected true/false brocaroni and cheese.", 5)
+        end
     end
 end
 
@@ -508,38 +528,40 @@ end
 
 getgenv().AntiOutfitStealerConn = getgenv().AntiOutfitStealerConn or nil
 
-getgenv().ToggleAntiFit_Stealer = function(state)
-    local RunService = getgenv().RunService
+if not getgenv().ToggleAntiFit_Stealer then
+    getgenv().ToggleAntiFit_Stealer = function(state)
+        local RunService = getgenv().RunService
 
-    if not state then
-        getgenv().anti_outfit_stealer = false
+        if not state then
+            getgenv().anti_outfit_stealer = false
 
-        if getgenv().AntiOutfitStealerConn then
-            getgenv().AntiOutfitStealerConn:Disconnect()
-            getgenv().AntiOutfitStealerConn = nil
-        end
+            if getgenv().AntiOutfitStealerConn then
+                getgenv().AntiOutfitStealerConn:Disconnect()
+                getgenv().AntiOutfitStealerConn = nil
+            end
 
-        local bio = getgenv().LocalPlayer:GetAttribute("bio")
+            local bio = getgenv().LocalPlayer:GetAttribute("bio")
 
-        if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
-            getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
-            getgenv().notify("Success", "Bio changed, reverted change.", 2)
+            if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
+                getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
+                getgenv().notify("Success", "Bio changed, reverted change.", 2)
+            else
+                getgenv().notify("Warning", "Bio not found, cannot change, disabled loop.", 5)
+            end
+            return 
         else
-            getgenv().notify("Warning", "Bio not found, cannot change, disabled loop.", 5)
+            getgenv().anti_outfit_stealer = true
         end
-        return 
-    else
-        getgenv().anti_outfit_stealer = true
+
+        getgenv().AntiOutfitStealerConn = RunService.Heartbeat:Connect(function()
+            local bio = getgenv().LocalPlayer:GetAttribute("bio")
+
+            if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
+                getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
+                getgenv().notify("Success", "Bio changed, reverted change.", 2)
+            end
+        end)
     end
-
-    getgenv().AntiOutfitStealerConn = RunService.Heartbeat:Connect(function()
-        local bio = getgenv().LocalPlayer:GetAttribute("bio")
-
-        if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
-            getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
-            getgenv().notify("Success", "Bio changed, reverted change.", 2)
-        end
-    end)
 end
 
 local Old_Bio = getgenv().LocalPlayer:GetAttribute("bio") or "DEFAULT"
@@ -704,13 +726,15 @@ local function setupFolder(folder)
 	table.insert(getgenv().VehicleDestroyer_Connections, getgenv().vehiclesChildAddedConn)
 end
 
-getgenv().DisableVehicleDestroyer = function()
-    if not getgenv().VehicleDestroyer_Enabled then
-        return getgenv().notify("Warning", "Anti Vehicle Fling is not enabled!", 5)
+if not getgenv().DisableVehicleDestroyer then
+    getgenv().DisableVehicleDestroyer = function()
+        if not getgenv().VehicleDestroyer_Enabled then
+            return getgenv().notify("Warning", "Anti Vehicle Fling is not enabled!", 5)
+        end
+        wait(0.1)
+        getgenv().VehicleDestroyer_Enabled = false
+        clearConnections()
     end
-    wait(0.1)
-	getgenv().VehicleDestroyer_Enabled = false
-	clearConnections()
 end
 
 function job_spammer(toggle)
@@ -754,37 +778,37 @@ function anti_car_fling(toggle)
             return getgenv().notify("Warning", "Anti Vehicle Fling is already enabled!", 5)
         end
         wait(0.1)
-            getgenv().VehicleDestroyer_Enabled = true
-            clearConnections()
+        getgenv().VehicleDestroyer_Enabled = true
+        clearConnections()
 
-            local vehiclesFolder = getgenv().Workspace:FindFirstChild("Vehicles") or getgenv().Workspace:WaitForChild("Vehicles", 5)
-            if vehiclesFolder then
-                setupFolder(vehiclesFolder)
+        local vehiclesFolder = getgenv().Workspace:FindFirstChild("Vehicles") or getgenv().Workspace:WaitForChild("Vehicles", 5)
+        if vehiclesFolder then
+            setupFolder(vehiclesFolder)
+        end
+
+        getgenv().folderAddedConn = getgenv().Workspace.ChildAdded:Connect(function(child)
+            if child.Name == "Vehicles" and child:IsA("Folder") then
+                setupFolder(child)
+                vehiclesFolder = child
             end
+        end)
+        table.insert(getgenv().VehicleDestroyer_Connections, getgenv().folderAddedConn)
 
-            getgenv().folderAddedConn = getgenv().Workspace.ChildAdded:Connect(function(child)
-                if child.Name == "Vehicles" and child:IsA("Folder") then
-                    setupFolder(child)
-                    vehiclesFolder = child
-                end
-            end)
-            table.insert(getgenv().VehicleDestroyer_Connections, getgenv().folderAddedConn)
-
-            getgenv().vehiclesHeartBeatConnection = getgenv().RunService.Heartbeat:Connect(function()
-                if not getgenv().VehicleDestroyer_Enabled then return end
-                if vehiclesFolder and vehiclesFolder.Parent then
-                    disableCollisionIn(vehiclesFolder)
-                else
-                    vehiclesFolder = getgenv().Workspace:FindFirstChild("Vehicles")
-                end
-            end)
-            table.insert(getgenv().VehicleDestroyer_Connections, getgenv().vehiclesHeartBeatConnection)
-        elseif toggle == false then
-            getgenv().DisableVehicleDestroyer()
+        getgenv().vehiclesHeartBeatConnection = getgenv().RunService.Heartbeat:Connect(function()
+            if not getgenv().VehicleDestroyer_Enabled then return end
+            if vehiclesFolder and vehiclesFolder.Parent then
+                disableCollisionIn(vehiclesFolder)
+            else
+                vehiclesFolder = getgenv().Workspace:FindFirstChild("Vehicles")
+            end
+        end)
+        table.insert(getgenv().VehicleDestroyer_Connections, getgenv().vehiclesHeartBeatConnection)
+    elseif toggle == false then
+        getgenv().DisableVehicleDestroyer()
         getgenv().notify("Success", "Anti Vehicle Fling has been disabled.", 5)
     else
         return 
-	end
+    end
 end
 
 if not isfile(config_path) then
@@ -922,8 +946,15 @@ local function create_toggle(name, order)
     end)
 end
 
+local function update_frame_size()
+    local total_height = 50 + (#toggles * 40) + 10
+    Frame.Size = UDim2.new(0, 300, 0, total_height)
+end
+
 local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer"}
 
 for i, t in ipairs(toggles) do
     create_toggle(t, i)
 end
+
+update_frame_size()
