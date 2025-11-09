@@ -946,15 +946,15 @@ local function create_toggle(name, order)
     end)
 end
 
-local function update_frame_size()
-    local total_height = 50 + (#toggles * 40) + 10
-    Frame.Size = UDim2.new(0, 300, 0, total_height)
-end
-
 local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer"}
 
+local function update_frame_size()
+   local total_height = 50 + (#toggles * 40) + 10
+   Frame.Size = UDim2.new(0, 300, 0, total_height)
+end
+
 for i, t in ipairs(toggles) do
-    create_toggle(t, i)
+   create_toggle(t, i)
 end
 
 update_frame_size()
