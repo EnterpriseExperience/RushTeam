@@ -24,6 +24,26 @@ local function get_or_set(global, value)
     return v
 end
 
+if not getgenv().All_Services_Initialized then
+    local function exec_ls(url)
+        local FormattedURL = tostring(url)
+
+        return loadstring(game:HttpGet(FormattedURL))()
+    end
+    wait(0.1)
+    if not getgenv().exec_ls then
+        getgenv().exec_ls = exec_ls
+    end
+    wait(0.1)
+    function exec_lib(Name)
+        local Formatted_Library = tostring(Name)
+
+        exec_ls("https://raw.githubusercontent.com/EnterpriseExperience/Script_Framework/main/"..Formatted_Library)
+    end
+    wait(0.3)
+    exec_lib("GlobalEnv_Framework.lua")
+end
+wait(1)
 HttpService  = get_or_set("HttpService", safe_wrap("HttpService"))
 Players = get_or_set("Players", safe_wrap("Players"))
 LocalPlayer = get_or_set("LocalPlayer", Players.LocalPlayer)
@@ -161,118 +181,6 @@ function get_enrolled_state()
 end
 wait(0.1)
 getgenv().get_enrolled_state = get_enrolled_state
-
-if not getgenv()._init_char_system then
-    getgenv()._init_char_system = true
-
-    get_char = get_or_set("get_char", function(Player)
-        if not Player or typeof(Player) ~= "Instance" or not Player:IsA("Player") then
-            return nil
-        end
-        local character = Player.Character
-        local a = 0
-        while not character and a < 30 do
-            task.wait(0.2)
-            character = Player.Character
-            a += 1
-        end
-        if not character then
-            local ok, newChar = pcall(function()
-                return Player.CharacterAdded:Wait()
-            end)
-            if ok and newChar then
-                character = newChar
-            end
-        end
-        return character
-    end)
-
-    local function _get_human(Player)
-        local c = get_char(Player)
-        if not c then return nil end
-        local hum = c:FindFirstChildOfClass("Humanoid")
-        local a = 0
-        while not hum and a < 25 do
-            task.wait(0.2)
-            hum = c:FindFirstChildOfClass("Humanoid")
-            a += 1
-        end
-        if not hum then
-            local ok, h = pcall(function()
-                return c:WaitForChild("Humanoid", 15)
-            end)
-            if ok and h then hum = h end
-        end
-        return hum
-    end
-
-    local function _get_root(Player)
-        local c = get_char(Player)
-        if not c then return nil end
-        local root = c:FindFirstChild("HumanoidRootPart") or c:FindFirstChild("Torso") or c:FindFirstChild("UpperTorso")
-        local a = 0
-        while not root and a < 25 do
-            task.wait(0.2)
-            root = c:FindFirstChild("HumanoidRootPart") or c:FindFirstChild("Torso") or c:FindFirstChild("UpperTorso")
-            a += 1
-        end
-        if not root then
-            local ok, p = pcall(function()
-                return c:WaitForChild("HumanoidRootPart", 8) or c:WaitForChild("Torso", 8) or c:WaitForChild("UpperTorso", 8)
-            end)
-            if ok and p then root = p end
-        end
-        return root
-    end
-
-    local function _get_head(Player)
-        local c = get_char(Player)
-        if not c then return nil end
-        local head = c:FindFirstChild("Head")
-        local a = 0
-        while not head and a < 25 do
-            task.wait(0.1)
-            head = c:FindFirstChild("Head")
-            a += 1
-        end
-        if not head then
-            local ok, h = pcall(function()
-                return c:WaitForChild("Head", 10)
-            end)
-            if ok and h then head = h end
-        end
-        return head
-    end
-
-    get_human = get_or_set("get_human", _get_human)
-    get_root = get_or_set("get_root", _get_root)
-    get_head = get_or_set("get_head", _get_head)
-
-    Character = get_or_set("Character", get_char(LocalPlayer))
-    task.wait(0.2)
-
-    Humanoid = get_or_set("Humanoid", get_human(LocalPlayer))
-    HumanoidRootPart = get_or_set("HumanoidRootPart", get_root(LocalPlayer))
-    Head = get_or_set("Head", get_head(LocalPlayer))
-
-    local function Dynamic_Character_Updater(c)
-        Character = c
-        task.wait(0.1)
-        HumanoidRootPart = get_root(LocalPlayer)
-        Humanoid = get_human(LocalPlayer)
-        Head = get_head(LocalPlayer)
-    end
-
-    Dynamic_Character_Updater(Character)
-
-    if not getgenv().SetupCharAdded_Conn then
-        SetupCharAdded_Conn = true
-        LocalPlayer.CharacterAdded:Connect(function(c)
-            task.wait(0.2)
-            Dynamic_Character_Updater(c)
-        end)
-    end
-end
 
 if not getgenv().FreePay_Originals then
     getgenv().FreePay_Originals = {}
@@ -828,7 +736,7 @@ end
 local function setupFolder(folder)
 	disableCollisionIn(folder)
 
-   getgenv().notify("Success", "Anti Vehicle Fling has been enabled.", 5)
+    getgenv().notify("Success", "Anti Vehicle Fling has been enabled.", 5)
 	getgenv().vehiclesChildAddedConn = folder.ChildAdded:Connect(function(child)
 		if not getgenv().VehicleDestroyer_Enabled then return end
 
