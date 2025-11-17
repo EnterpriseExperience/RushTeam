@@ -2,6 +2,10 @@ if not getgenv().Game then
     getgenv().Game = cloneref and cloneref(game) or game
 end
 if not game:IsLoaded() then game.Loaded:Wait() end
+if getgenv().FlamesConfigManager then
+	return 
+end
+getgenv().FlamesConfigManager = true
 
 local function safe_wrap(service)
     if cloneref then
