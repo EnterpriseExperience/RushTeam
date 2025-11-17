@@ -1072,7 +1072,7 @@ local function create_toggle(name, order)
     end)
 end
 
-local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer", "FreePremium", ""}
+local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer", "FreePremium"}
 
 local function update_frame_size()
    local total_height = 50 + (#toggles * 40) + 10
