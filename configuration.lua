@@ -29,6 +29,7 @@ Players = get_or_set("Players", safe_wrap("Players"))
 LocalPlayer = get_or_set("LocalPlayer", Players.LocalPlayer)
 CoreGui = get_or_set("CoreGui", safe_wrap("CoreGui"))
 RunService = get_or_set("RunService", safe_wrap("RunService"))
+local parent_gui = (get_hidden_gui and get_hidden_gui()) or (gethui and gethui()) or CoreGui
 local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/EnterpriseExperience/MicUpSource/refs/heads/main/Notification_Lib.lua"))()
 
 local function retrieve_executor()
@@ -344,7 +345,7 @@ end
 
 getgenv().AntiFling_Tracked = getgenv().AntiFling_Tracked or setmetatable({}, { __mode = "k" })
 getgenv().AntiFling_Signals = getgenv().AntiFling_Signals or setmetatable({}, { __mode = "k" })
-getgenv().AntiFling_Enabled = false
+getgenv().AntiFling_Enabled = getgenv().AntiFling_Enabled or false
 getgenv().AntiFling_SteppedConnection = getgenv().AntiFling_SteppedConnection or nil
 getgenv().AntiFling_PlayerAddedConn = getgenv().AntiFling_PlayerAddedConn or nil
 getgenv().AntiFling_PlayerRemovingConn = getgenv().AntiFling_PlayerRemovingConn or nil
@@ -945,7 +946,7 @@ end
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FlamesAdminGUI"
-ScreenGui.Parent = getgenv().CoreGui
+ScreenGui.Parent = parent_gui
 ScreenGui.Enabled = false
 ScreenGui.ResetOnSpawn = false
 
@@ -963,7 +964,7 @@ local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(0.850000024, 0, 0, 45)
 Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "🔥 Flames Admin Config 🔥"
+Title.Text = "🔥 Flames Admin | Config 🔥"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 14
@@ -979,7 +980,7 @@ Close.Font = Enum.Font.GothamBold
 Close.TextScaled = true
 Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 8)
 Close.MouseButton1Click:Connect(function()
-   ScreenGui:Destroy()
+   ScreenGui.Enabled = false
 end)
 
 getgenv().Flames_Features = getgenv().Flames_Features or {}
@@ -1071,7 +1072,7 @@ local function create_toggle(name, order)
     end)
 end
 
-local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer", "FreePremium"}
+local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer", "FreePremium", ""}
 
 local function update_frame_size()
    local total_height = 50 + (#toggles * 40) + 10
