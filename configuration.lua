@@ -22,7 +22,7 @@ end
 
 HttpService  = get_or_set("HttpService", safe_wrap("HttpService"))
 Players = get_or_set("Players", safe_wrap("Players"))
-LocalPlayer = get_or_set("LocalPlayer", safe_wrap("LocalPlayer"))
+LocalPlayer = get_or_set("LocalPlayer", Players.LocalPlayer)
 CoreGui = get_or_set("CoreGui", safe_wrap("CoreGui"))
 RunService = get_or_set("RunService", safe_wrap("RunService"))
 local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/EnterpriseExperience/MicUpSource/refs/heads/main/Notification_Lib.lua"))()
