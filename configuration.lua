@@ -1,20 +1,30 @@
-local HttpService = cloneref and cloneref(game:GetService("HttpService")) or game:GetService("HttpService")
-getgenv().HttpService = HttpService
-local Players = cloneref and cloneref(game:GetService("Players")) or game:GetService("Players")
-getgenv().Players = Players
-local LocalPlayer = Players.LocalPlayer
-getgenv().LocalPlayer = LocalPlayer
-local HttpService = cloneref and cloneref(game:GetService("HttpService")) or game:GetService("HttpService")
-getgenv().HttpService = HttpService
-local CoreGui = cloneref and cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui")
-getgenv().CoreGui = CoreGui
-local RunService = cloneref and cloneref(game:GetService("RunService")) or game:GetService("RunService")
-getgenv().RunService = RunService
-local CoreGui = cloneref and cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui")
-getgenv().CoreGui = CoreGui
-local RunService = cloneref and cloneref(game:GetService("RunService")) or game:GetService("RunService")
-getgenv().RunService = RunService
+if not getgenv().Game then
+    getgenv().Game = cloneref and cloneref(game) or game
+end
+if not game:IsLoaded() then game.Loaded:Wait() end
 
+local function safe_wrap(service)
+    if cloneref then
+        return cloneref(getgenv().Game:GetService(service))
+    else
+        return getgenv().Game:GetService(service)
+    end
+end
+
+local function get_or_set(global, value)
+    local v = rawget and rawget(getgenv(), global) or getgenv()[global]
+    if v == nil then
+        getgenv()[global] = value
+        return value
+    end
+    return v
+end
+
+HttpService  = get_or_set("HttpService", safe_wrap("HttpService"))
+Players = get_or_set("Players", safe_wrap("Players"))
+LocalPlayer = get_or_set("LocalPlayer", safe_wrap("LocalPlayer"))
+CoreGui = get_or_set("CoreGui", safe_wrap("CoreGui"))
+RunService = get_or_set("RunService", safe_wrap("RunService"))
 local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/EnterpriseExperience/MicUpSource/refs/heads/main/Notification_Lib.lua"))()
 
 local function retrieve_executor()
@@ -41,19 +51,11 @@ local function executor_contains(substr)
     return string.find(string.lower(executor_string), string.lower(substr), 1, true) ~= nil
 end
 wait(0.2)
-if executor_contains("LX63") then
-    function notify(notif_type, msg, duration)
-        NotifyLib:StarterGui_Notify(tostring(notif_type), tostring(msg), tonumber(duration))
-    end
-    wait(0.1)
-    getgenv().notify = notify
-else
-    function notify(notif_type, msg, duration)
-        NotifyLib:External_Notification(tostring(notif_type), tostring(msg), tonumber(duration))
-    end
-    wait(0.1)
-    getgenv().notify = notify
+function notify(notif_type, msg, duration)
+    NotifyLib:External_Notification(tostring(notif_type), tostring(msg), tonumber(duration))
 end
+
+notify = get_or_set("notify", notify)
 
 local config_path = "Flames_Admin_Config.json"
 local default_config = {
@@ -69,6 +71,12 @@ local default_config = {
     JobSpammer = "disabled"
 }
 
+ReplicatedStorage = get_or_set("ReplicatedStorage", safe_wrap("ReplicatedStorage"))
+Workspace = get_or_set("Workspace", safe_wrap("Workspace"))
+Modules = get_or_set("Modules", ReplicatedStorage:WaitForChild("Modules"))
+Core = get_or_set("Core", Modules:WaitForChild("Core"))
+Game_Folder = get_or_set("Game_Folder", Modules:WaitForChild("Game"))
+
 if executor_contains("LX63") then
     local targets = {
         "InvisibleMode",
@@ -81,30 +89,43 @@ if executor_contains("LX63") then
         "CCTV",
         "Tween",
         "Seat",
-        "Blur",
+        "Blur"
     }
 
     for _, target in ipairs(targets) do
         for _, obj in pairs(getgc(true)) do
             if typeof(obj) == "table" then
                 local info
-                local anyFunc
-
                 for _, v in pairs(obj) do
                     if typeof(v) == "function" then
                         info = debug.getinfo(v)
-                        anyFunc = true
                         break
                     end
                 end
-
-                if anyFunc and info and info.source and info.source:find(target) then
-                    getgenv()[target] = obj
+                if info and info.source and info.source:find(target) then
+                    get_or_set(target, obj)
                     break
                 end
             end
         end
     end
+else
+    InvisibleMode = get_or_set("InvisibleMode", require(Game_Folder:FindFirstChild("InvisibleMode")))
+    CharacterBillboardGui = get_or_set("CharacterBillboardGui", require(Game_Folder:FindFirstChild("CharacterBillboardGui")))
+    PlotMarker = get_or_set("PlotMarker", require(Game_Folder:FindFirstChild("PlotMarker")))
+    Data = get_or_set("Data", require(Core:FindFirstChild("Data")))
+    Phone_Module = get_or_set("Phone_Module", Game_Folder:FindFirstChild("Phone"))
+    Phone = get_or_set("Phone", require(Game_Folder:FindFirstChild("Phone")))
+    Privacy = get_or_set("Privacy", require(Core:FindFirstChild("Privacy")))
+    AppModules = get_or_set("AppModules", Phone_Module:FindFirstChild("AppModules"))
+    Messages = get_or_set("Messages", require(AppModules:FindFirstChild("Messages")))
+    Network = get_or_set("Network", require(Core:FindFirstChild("Net")))
+    CCTV = get_or_set("CCTV", require(Game_Folder:FindFirstChild("CCTV")))
+    Tween = get_or_set("Tween", require(Core:FindFirstChild("Tween")))
+    Seat = get_or_set("Seat", require(Game_Folder:FindFirstChild("Seat")))
+    Blur = get_or_set("Blur", require(Core:FindFirstChild("Blur")))
+    RateLimiter = get_or_set("RateLimiter", require(Core:FindFirstChild("RateLimiter")))
+    UI = get_or_set("UI", require(Core:FindFirstChild("UI")))
 end
 
 function set_enrolled_state(state)
@@ -133,94 +154,188 @@ function get_enrolled_state()
     local config = HttpService:JSONDecode(readfile(config_path))
     return config.Enrolled
 end
-
 wait(0.1)
 getgenv().get_enrolled_state = get_enrolled_state
 
-local function Get_Char(Player)
-    if not Player or not Player.Character then
-        local Char = nil
-        local conn
-        conn = Player.CharacterAdded:Connect(function(c)
-            Char = c
-        end)
+if not getgenv()._init_char_system then
+    getgenv()._init_char_system = true
 
-        repeat task.wait() until Char or not Player.Parent
-        if conn then conn:Disconnect() end
-        return Char
-    end
-    return Player.Character
-end
-wait(0.1)
-getgenv().Character = getgenv().Character or Get_Char(getgenv().LocalPlayer)
-
-local function SafeGetHumanoid(char)
-	local hum = char:FindFirstChildWhichIsA("Humanoid")
-
-	if hum and hum:IsA("Humanoid") then
-		return hum
-	else
-		return char:WaitForChild("Humanoid", 5)
-	end
-end
-
-local function SafeGetHead(char)
-	local head = char:FindFirstChild("Head")
-	if head and head:IsA("BasePart") then
-		return head
-	else
-		return char:WaitForChild("Head", 5)
-	end
-end
-
-local function SafeGetHRP(char)
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	if hrp and hrp:IsA("BasePart") then
-		return hrp
-	else
-		return char:WaitForChild("HumanoidRootPart", 5)
-	end
-end
-
-getgenv().HumanoidRootPart = SafeGetHRP(getgenv().Character)
-getgenv().Humanoid = SafeGetHumanoid(getgenv().Character)
-getgenv().Head = SafeGetHead(getgenv().Character)
-wait(0.5)
-local function Dynamic_Character_Updater(character)
-    getgenv().Character = character
-    wait(0.4)
-    if getgenv().Character and getgenv().Character:FindFirstChild("Humanoid") then
-        getgenv().HumanoidRootPart = SafeGetHRP(character)
-        getgenv().Humanoid = SafeGetHumanoid(character)
-        getgenv().Head = SafeGetHead(character)
-    elseif not getgenv().Character then
-        repeat task.wait() until character
-        getgenv().Character = character
-    end
-end
-
-Dynamic_Character_Updater(getgenv().Character)
-task.wait(0.2)
-if not getgenv().SetupCharAdded_Conn then
-    getgenv().LocalPlayer.CharacterAdded:Connect(function(newCharacter)
-        task.wait(0.2)
-        Dynamic_Character_Updater(newCharacter)
-        repeat wait() until newCharacter:FindFirstChildWhichIsA("Humanoid") and newCharacter:FindFirstChild("HumanoidRootPart")
-        wait(0.5)
-        getgenv().Character = newCharacter
-        wait(0.2)
-        getgenv().HumanoidRootPart = SafeGetHRP(newCharacter)
-        getgenv().Humanoid = SafeGetHumanoid(newCharacter)
-        getgenv().Head = SafeGetHead(newCharacter)
-        wait(0.3)
-        if not getgenv().Humanoid then
-            getgenv().Humanoid = getgenv().Character:WaitForChild("Humanoid", 5)
+    get_char = get_or_set("get_char", function(Player)
+        if not Player or typeof(Player) ~= "Instance" or not Player:IsA("Player") then
+            return nil
         end
-        wait(0.2)
-        Dynamic_Character_Updater(newCharacter)
+        local character = Player.Character
+        local a = 0
+        while not character and a < 30 do
+            task.wait(0.2)
+            character = Player.Character
+            a += 1
+        end
+        if not character then
+            local ok, newChar = pcall(function()
+                return Player.CharacterAdded:Wait()
+            end)
+            if ok and newChar then
+                character = newChar
+            end
+        end
+        return character
     end)
-    wait(0.1)
-    getgenv().SetupCharAdded_Conn = true
+
+    local function _get_human(Player)
+        local c = get_char(Player)
+        if not c then return nil end
+        local hum = c:FindFirstChildOfClass("Humanoid")
+        local a = 0
+        while not hum and a < 25 do
+            task.wait(0.2)
+            hum = c:FindFirstChildOfClass("Humanoid")
+            a += 1
+        end
+        if not hum then
+            local ok, h = pcall(function()
+                return c:WaitForChild("Humanoid", 15)
+            end)
+            if ok and h then hum = h end
+        end
+        return hum
+    end
+
+    local function _get_root(Player)
+        local c = get_char(Player)
+        if not c then return nil end
+        local root = c:FindFirstChild("HumanoidRootPart") or c:FindFirstChild("Torso") or c:FindFirstChild("UpperTorso")
+        local a = 0
+        while not root and a < 25 do
+            task.wait(0.2)
+            root = c:FindFirstChild("HumanoidRootPart") or c:FindFirstChild("Torso") or c:FindFirstChild("UpperTorso")
+            a += 1
+        end
+        if not root then
+            local ok, p = pcall(function()
+                return c:WaitForChild("HumanoidRootPart", 8) or c:WaitForChild("Torso", 8) or c:WaitForChild("UpperTorso", 8)
+            end)
+            if ok and p then root = p end
+        end
+        return root
+    end
+
+    local function _get_head(Player)
+        local c = get_char(Player)
+        if not c then return nil end
+        local head = c:FindFirstChild("Head")
+        local a = 0
+        while not head and a < 25 do
+            task.wait(0.1)
+            head = c:FindFirstChild("Head")
+            a += 1
+        end
+        if not head then
+            local ok, h = pcall(function()
+                return c:WaitForChild("Head", 10)
+            end)
+            if ok and h then head = h end
+        end
+        return head
+    end
+
+    get_human = get_or_set("get_human", _get_human)
+    get_root = get_or_set("get_root", _get_root)
+    get_head = get_or_set("get_head", _get_head)
+
+    Character = get_or_set("Character", get_char(LocalPlayer))
+    task.wait(0.2)
+
+    Humanoid = get_or_set("Humanoid", get_human(LocalPlayer))
+    HumanoidRootPart = get_or_set("HumanoidRootPart", get_root(LocalPlayer))
+    Head = get_or_set("Head", get_head(LocalPlayer))
+
+    local function Dynamic_Character_Updater(c)
+        Character = c
+        task.wait(0.1)
+        HumanoidRootPart = get_root(LocalPlayer)
+        Humanoid = get_human(LocalPlayer)
+        Head = get_head(LocalPlayer)
+    end
+
+    Dynamic_Character_Updater(Character)
+
+    if not getgenv().SetupCharAdded_Conn then
+        SetupCharAdded_Conn = true
+        LocalPlayer.CharacterAdded:Connect(function(c)
+            task.wait(0.2)
+            Dynamic_Character_Updater(c)
+        end)
+    end
+end
+
+if not getgenv().FreePay_Originals then
+    getgenv().FreePay_Originals = {}
+end
+local originals = getgenv().FreePay_Originals
+local function freepay_func(state)
+    local Data = getgenv().Data
+    local notify = getgenv().notify
+    local ReplicatedStorage = getgenv().ReplicatedStorage
+
+    if not Data or not Data.initiate then
+        return notify("Error", "Data module missing.", 5)
+    end
+    if not debug.getupvalue then
+        return notify("Error", "Executor does not support getupvalue.", 5)
+    end
+    if not ReplicatedStorage then
+        return notify("Error", "ReplicatedStorage missing.", 5)
+    end
+
+    if state == nil then
+        state = not getgenv().Has_Free_LifePremium
+    end
+
+    if state then
+        if getgenv().Has_Free_LifePremium then
+            return notify("Error", "FreePay is already enabled.", 5)
+        end
+
+        for _, v in ipairs(ReplicatedStorage:GetDescendants()) do
+            local val = v:GetAttribute("IsVerifiedOnly")
+            if val ~= nil then
+                originals[v] = val
+                v:SetAttribute("IsVerifiedOnly", false)
+            end
+        end
+
+        local update = debug.getupvalue(Data.initiate, 2)
+        local _, original = Data.initiate("is_verified")
+        originals["_is_verified"] = original
+        update("is_verified", true)
+
+        getgenv().Has_Free_LifePremium = true
+        notify("Success", "FreePay is now enabled.", 5)
+    else
+        if not getgenv().Has_Free_LifePremium then
+            return notify("Error", "FreePay is not enabled.", 5)
+        end
+
+        for obj, val in pairs(originals) do
+            if obj ~= "_is_verified" and typeof(obj) == "Instance" then
+                if obj.Parent and obj:GetAttribute("IsVerifiedOnly") ~= nil then
+                    obj:SetAttribute("IsVerifiedOnly", val)
+                end
+            end
+        end
+
+        local update = debug.getupvalue(Data.initiate, 2)
+        update("is_verified", originals["_is_verified"] or false)
+
+        table.clear(originals)
+        getgenv().Has_Free_LifePremium = false
+        notify("Success", "FreePay is now disabled.", 5)
+    end
+end
+
+if not getgenv().FreePayFuncToggle then
+    getgenv().FreePayFuncToggle = freepay_func
 end
 
 getgenv().AntiFling_Tracked = getgenv().AntiFling_Tracked or setmetatable({}, { __mode = "k" })
@@ -920,6 +1035,12 @@ local function handle_toggle(name, state)
         else
             job_spammer(false)
         end
+    elseif name == "FreePremium" then
+        if state == "enabled" then
+            freepay_func(true)
+        else
+            freepay_func(false)
+        end
     end
 end
 
@@ -946,7 +1067,7 @@ local function create_toggle(name, order)
     end)
 end
 
-local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer"}
+local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer", "FreePremium"}
 
 local function update_frame_size()
    local total_height = 50 + (#toggles * 40) + 10
