@@ -1,5 +1,5 @@
 if not getgenv().Game then
-    getgenv().Game = cloneref and cloneref(game) or game
+    getgenv().Game = game
 end
 if not game:IsLoaded() then game.Loaded:Wait() end
 if getgenv().FlamesConfigManager then
@@ -9,9 +9,9 @@ getgenv().FlamesConfigManager = true
 
 local function safe_wrap(service)
     if cloneref then
-        return cloneref(getgenv().Game:GetService(service))
+        return cloneref(game:GetService(service))
     else
-        return getgenv().Game:GetService(service)
+        return game:GetService(service)
     end
 end
 
@@ -726,11 +726,14 @@ local function clearConnections()
 end
 
 local function disableCollisionIn(folder)
-	for _, obj in ipairs(folder:GetDescendants()) do
-		if obj:IsA("BasePart") and obj.CanCollide then
-			obj.CanCollide = false
-		end
-	end
+    local plrsvehicle = get_vehicle()
+
+    for _, obj in ipairs(folder:GetDescendants()) do
+        if plrsvehicle and obj:IsDescendantOf(plrsvehicle) then
+        elseif obj:IsA("BasePart") and obj.CanCollide then
+            obj.CanCollide = false
+        end
+    end
 end
 
 local function setupFolder(folder)
@@ -743,12 +746,18 @@ local function setupFolder(folder)
 		if child:IsA("BasePart") then
 			child.CanCollide = false
 		elseif child:IsA("Model") then
-			child.DescendantAdded:Connect(function(desc)
-				if desc:IsA("BasePart") then
-					desc.CanCollide = false
-				end
-			end)
-			disableCollisionIn(child)
+            local plrsvehicle = get_vehicle()
+
+            child.DescendantAdded:Connect(function(desc)
+                if plrsvehicle and desc:IsDescendantOf(plrsvehicle) then
+                    return
+                end
+                if desc:IsA("BasePart") then
+                    desc.CanCollide = false
+                end
+            end)
+
+            disableCollisionIn(child)
 		end
 	end)
 	table.insert(getgenv().VehicleDestroyer_Connections, getgenv().vehiclesChildAddedConn)
