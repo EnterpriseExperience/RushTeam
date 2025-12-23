@@ -1,7 +1,9 @@
+if not game:IsLoaded() then game.Loaded:Wait() end
+
 if not getgenv().Game then
     getgenv().Game = game
 end
-if not game:IsLoaded() then game.Loaded:Wait() end
+
 if getgenv().FlamesConfigManager then
 	return 
 end
@@ -49,7 +51,7 @@ Players = get_or_set("Players", safe_wrap("Players"))
 LocalPlayer = get_or_set("LocalPlayer", Players.LocalPlayer)
 CoreGui = get_or_set("CoreGui", safe_wrap("CoreGui"))
 RunService = get_or_set("RunService", safe_wrap("RunService"))
-local parent_gui = (get_hidden_gui and get_hidden_gui()) or (gethui and gethui()) or CoreGui
+local parent_gui = CoreGui
 local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/EnterpriseExperience/MicUpSource/refs/heads/main/Notification_Lib.lua"))()
 
 local function retrieve_executor()
@@ -424,7 +426,7 @@ if not getgenv().EnableAntiFling then
     end
 end
 
-getgenv().Noclip_Enabled = false
+getgenv().Noclip_Enabled = getgenv().Noclip_Enabled or false
 getgenv().Noclip_Connection = getgenv().Noclip_Connection or nil
 local RunService = getgenv().RunService or game:GetService("RunService")
 
@@ -444,7 +446,7 @@ local function ToggleNoclip(toggle)
             end
         end
 
-        getgenv().Noclip_Connection = RunService.Stepped:Connect(NoclipLoop)
+        getgenv().Noclip_Connection = getgenv().Noclip_Connection or RunService.Stepped:Connect(NoclipLoop)
         getgenv().Noclip_Enabled = true
         getgenv().notify("Success", "Noclip has been enabled.", 5)
     elseif toggle == false then
