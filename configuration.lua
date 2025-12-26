@@ -572,8 +572,8 @@ if not getgenv().ToggleAntiFit_Stealer then
 
             local bio = getgenv().LocalPlayer:GetAttribute("bio")
 
-            if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
-                getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
+            if bio and bio ~= "Flames Hub | Anti Stealer is: ON." then
+                getgenv().Send("bio", "Flames Hub | Anti Stealer is: ON.")
                 getgenv().notify("Success", "Bio changed, reverted change.", 2)
             else
                 getgenv().notify("Warning", "Bio not found, cannot change, disabled loop.", 5)
@@ -586,8 +586,8 @@ if not getgenv().ToggleAntiFit_Stealer then
         getgenv().AntiOutfitStealerConn = RunService.Heartbeat:Connect(function()
             local bio = getgenv().LocalPlayer:GetAttribute("bio")
 
-            if bio and bio ~= "ANTI COPIER ENABLED HERE - THANKS!" then
-                getgenv().Send("bio", "ANTI COPIER ENABLED HERE - THANKS!")
+            if bio and bio ~= "Flames Hub | Anti Stealer is: ON." then
+                getgenv().Send("bio", "Flames Hub | Anti Stealer is: ON.")
                 getgenv().notify("Success", "Bio changed, reverted change.", 2)
             end
         end)
