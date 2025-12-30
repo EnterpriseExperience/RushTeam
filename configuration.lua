@@ -673,49 +673,46 @@ local function find_seat_module()
 end
 
 wait(0.2)
-function anti_sit_func(toggle)
-    if executor_contains("LX63") and getgenv().Seat then
-        getgenv().Seat = find_seat_module()
-    elseif not executor_contains("LX63") and getgenv().Seat then
-        is_enabled = getgenv().Seat.enabled.get()
-    elseif not getgenv().Seat then
-        if executor_contains("LX63") then
-            getgenv().Seat = find_seat_module()
-        else
-            getgenv().Seat = require(getgenv().Game_Folder:FindFirstChild("Seat"))
-        end
+getgenv().AntiSitActive = getgenv().AntiSitActive or false
+getgenv().AntiSitToken = getgenv().AntiSitToken or 0
+
+getgenv().disableAntiSit = function()
+    if not getgenv().AntiSitActive then
+        show_notification("Failure:", "Sitting is already enabled!", "Warning")
+        return getgenv().notify("Warning", "Sitting is already enabled!", 5)
     end
-    
-    if toggle == true then
-        if getgenv().Not_Ever_Sitting then
-            return getgenv().notify("Warning", "AntiSit is already enabled!", 5)
-        end
 
-        getgenv().notify("Success", "Anti-Sit is now enabled!", 5)
-        show_notification("Success:", "Anti-Sit is now enabled!", "Normal")
-        wait(0.2)
-        getgenv().Not_Ever_Sitting = true
+    getgenv().AntiSitActive = false
+    getgenv().Not_Ever_Sitting = false
+    getgenv().AntiSitToken += 1
+    task.wait()
+    getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+    getgenv().Seat.enabled.set(true)
 
-        task.spawn(function()
-            while getgenv().Not_Ever_Sitting == true do
+    getgenv().notify("Success", "Sitting is now enabled!", 5)
+end
+
+getgenv().enableAntiSit = function()
+    if getgenv().AntiSitActive then
+        show_notification("Failure:", "NoSit/AntiSit is already enabled!", "Warning")
+        return notify("Error", "NoSit/AntiSit is already enabled!", 5)
+    end
+
+    getgenv().AntiSitActive = true
+    getgenv().Not_Ever_Sitting = true
+    getgenv().AntiSitToken += 1
+    local myToken = getgenv().AntiSitToken
+
+    task.spawn(function()
+        while getgenv().Not_Ever_Sitting and myToken == getgenv().AntiSitToken do
             task.wait()
-                getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-                getgenv().Seat.enabled.set(false)
-            end
-        end)
-    elseif toggle == false then
-        if not getgenv().Not_Ever_Sitting then
-            return getgenv().notify("Warning", "AntiSit is not enabled!", 5)
+            getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+            getgenv().Seat.enabled.set(false)
         end
+    end)
 
-        getgenv().Not_Ever_Sitting = false
-        wait(0.2)
-        getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-        getgenv().Seat.enabled.set(true)
-        wait(0.1)
-        getgenv().notify("Success", "Sitting is now enabled!", 5)
-        Phone.show_notification("Success:", "Sitting is now enabled!", "Normal")
-    end
+    getgenv().notify("Success", "Anti-Sit/No-Sit is now enabled!", 5)
+    show_notification("Success:", "AntiSit/NoSit is now enabled!", "Normal")
 end
 
 function anti_void(toggle)
@@ -986,9 +983,9 @@ local function handle_toggle(name, state)
         end
     elseif name == "NoSit" then
         if state == "enabled" then
-            anti_sit_func(true)
+            getgenv().enableAntiSit()
         else
-            anti_sit_func(false)
+            getgenv().disableAntiSit()
         end
     elseif name == "AntiOutfitStealer" then
         if state == "enabled" then
