@@ -654,8 +654,6 @@ function anti_outfit_copier(toggle)
     end
 end
 
-local is_enabled
-
 local function find_seat_module()
     for _, obj in pairs(getgc(true)) do
         if typeof(obj) == "table" then
@@ -675,44 +673,53 @@ end
 wait(0.2)
 getgenv().AntiSitActive = getgenv().AntiSitActive or false
 getgenv().AntiSitToken = getgenv().AntiSitToken or 0
-
-getgenv().disableAntiSit = function()
-    if not getgenv().AntiSitActive then
-        show_notification("Failure:", "Sitting is already enabled!", "Warning")
-        return getgenv().notify("Warning", "Sitting is already enabled!", 5)
-    end
-
-    getgenv().AntiSitActive = false
-    getgenv().Not_Ever_Sitting = false
-    getgenv().AntiSitToken += 1
-    task.wait()
-    getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-    getgenv().Seat.enabled.set(true)
-
-    getgenv().notify("Success", "Sitting is now enabled!", 5)
-end
-
-getgenv().enableAntiSit = function()
-    if getgenv().AntiSitActive then
-        show_notification("Failure:", "NoSit/AntiSit is already enabled!", "Warning")
-        return notify("Error", "NoSit/AntiSit is already enabled!", 5)
-    end
-
-    getgenv().AntiSitActive = true
-    getgenv().Not_Ever_Sitting = true
-    getgenv().AntiSitToken += 1
-    local myToken = getgenv().AntiSitToken
-
-    task.spawn(function()
-        while getgenv().Not_Ever_Sitting and myToken == getgenv().AntiSitToken do
-            task.wait()
-            getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-            getgenv().Seat.enabled.set(false)
+wait(0.1)
+getgenv().toggle_anti_sit_func = function(toggle)
+    if toggle == true then
+        if getgenv().AntiSitActive then
+            show_notification("Failure:", "NoSit/AntiSit is already enabled!", "Warning")
+            return notify("Error", "NoSit/AntiSit is already enabled!", 5)
         end
-    end)
+        if getgenv().Not_Ever_Sitting then
+            show_notification("Failure:", "NoSit/AntiSit is already enabled!", "Warning")
+            return notify("Error", "NoSit/AntiSit is already enabled!", 5)
+        end
 
-    getgenv().notify("Success", "Anti-Sit/No-Sit is now enabled!", 5)
-    show_notification("Success:", "AntiSit/NoSit is now enabled!", "Normal")
+        getgenv().AntiSitActive = true
+        getgenv().Not_Ever_Sitting = true
+
+        getgenv().Anti_Sitting_Task_Loop_Function = task.spawn(function()
+            while getgenv().Not_Ever_Sitting == true do
+                task.wait()
+                getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+                getgenv().Seat.enabled.set(false)
+            end
+        end)
+
+        getgenv().notify("Success", "Anti-Sit/No-Sit is now enabled!", 5)
+        show_notification("Success:", "AntiSit/NoSit is now enabled!", "Normal")
+    elseif toggle == false then
+        if not getgenv().AntiSitActive then
+            show_notification("Failure:", "Sitting is already enabled!", "Warning")
+            return getgenv().notify("Warning", "Sitting is already enabled!", 5)
+        end
+
+        getgenv().AntiSitActive = false
+        getgenv().Not_Ever_Sitting = false
+        getgenv().AntiSitToken += 1
+        task.wait()
+        getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+        getgenv().Seat.enabled.set(true)
+        if getgenv().Anti_Sitting_Task_Loop_Function then
+            pcall(function()
+                task.cancel(getgenv().Anti_Sitting_Task_Loop_Function)
+                getgenv().Anti_Sitting_Task_Loop_Function = nil
+            end)
+        end
+        getgenv().notify("Success", "Sitting is now enabled!", 5)
+    else
+        return 
+    end
 end
 
 function anti_void(toggle)
@@ -983,9 +990,9 @@ local function handle_toggle(name, state)
         end
     elseif name == "NoSit" then
         if state == "enabled" then
-            getgenv().enableAntiSit()
+            getgenv().toggle_anti_sit_func(true)
         else
-            getgenv().disableAntiSit()
+            getgenv().toggle_anti_sit_func(false)
         end
     elseif name == "AntiOutfitStealer" then
         if state == "enabled" then
