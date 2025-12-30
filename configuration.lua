@@ -807,42 +807,120 @@ function job_spammer(toggle)
     end
 end
 
-function anti_car_fling(toggle)
-    if toggle == true then
-        if getgenv().VehicleDestroyer_Enabled then
-            return getgenv().notify("Warning", "Anti Vehicle Fling is already enabled!", 5)
-        end
-        wait(0.1)
-        getgenv().VehicleDestroyer_Enabled = true
-        clearConnections()
+if not getgenv().anti_car_fling then
+    getgenv().VehicleDestroyer_Enabled = getgenv().VehicleDestroyer_Enabled or false
+    getgenv().VehicleDestroyer_Connections = getgenv().VehicleDestroyer_Connections or {}
+    getgenv().vehicle_parts_cache = getgenv().vehicle_parts_cache or {}
 
-        local vehiclesFolder = getgenv().Workspace:FindFirstChild("Vehicles") or getgenv().Workspace:WaitForChild("Vehicles", 5)
-        if vehiclesFolder then
-            setupFolder(vehiclesFolder)
+    local function safe_disconnect(conn)
+        if typeof(conn) == "RBXScriptConnection" then
+            pcall(function() conn:Disconnect() end)
         end
+    end
 
-        getgenv().folderAddedConn = getgenv().Workspace.ChildAdded:Connect(function(child)
-            if child.Name == "Vehicles" and child:IsA("Folder") then
-                setupFolder(child)
-                vehiclesFolder = child
+    local function clearConnections()
+        for _, conn in ipairs(getgenv().VehicleDestroyer_Connections) do
+            safe_disconnect(conn)
+        end
+        table.clear(getgenv().VehicleDestroyer_Connections)
+        table.clear(getgenv().vehicle_parts_cache)
+    end
+
+    local function is_in_vehicle(obj, vehicle)
+        return vehicle and obj and obj:IsDescendantOf(vehicle)
+    end
+
+    local function processPart(part)
+        if not part:IsA("BasePart") then return end
+        if getgenv().vehicle_parts_cache[part] then return end
+
+        local my_vehicle = get_vehicle and get_vehicle()
+        if my_vehicle and is_in_vehicle(part, my_vehicle) then return end
+
+        part.CanCollide = false
+        getgenv().vehicle_parts_cache[part] = true
+    end
+
+    local function processModel(model)
+        for _, inst in ipairs(model:GetDescendants()) do
+            if inst:IsA("BasePart") then
+                processPart(inst)
             end
-        end)
-        table.insert(getgenv().VehicleDestroyer_Connections, getgenv().folderAddedConn)
+        end
 
-        getgenv().vehiclesHeartBeatConnection = getgenv().RunService.Heartbeat:Connect(function()
+        local conn = model.DescendantAdded:Connect(function(desc)
             if not getgenv().VehicleDestroyer_Enabled then return end
-            if vehiclesFolder and vehiclesFolder.Parent then
-                disableCollisionIn(vehiclesFolder)
-            else
-                vehiclesFolder = getgenv().Workspace:FindFirstChild("Vehicles")
+            processPart(desc)
+        end)
+
+        table.insert(getgenv().VehicleDestroyer_Connections, conn)
+    end
+
+    local function setupVehiclesFolder(folder)
+        for _, inst in ipairs(folder:GetChildren()) do
+            if inst:IsA("Model") then
+                processModel(inst)
+            elseif inst:IsA("BasePart") then
+                processPart(inst)
+            end
+        end
+
+        local addConn = folder.ChildAdded:Connect(function(child)
+            if not getgenv().VehicleDestroyer_Enabled then return end
+            if child:IsA("Model") then
+                processModel(child)
+            elseif child:IsA("BasePart") then
+                processPart(child)
             end
         end)
-        table.insert(getgenv().VehicleDestroyer_Connections, getgenv().vehiclesHeartBeatConnection)
-    elseif toggle == false then
-        getgenv().DisableVehicleDestroyer()
-        getgenv().notify("Success", "Anti Vehicle Fling has been disabled.", 5)
-    else
-        return 
+
+        table.insert(getgenv().VehicleDestroyer_Connections, addConn)
+
+        if getgenv().notify then
+            getgenv().notify("Success", "Anti Vehicle Fling enabled.", 5)
+        end
+    end
+    wait(0.2)
+    function anti_car_fling(state)
+        if state == true then
+            if getgenv().VehicleDestroyer_Enabled then
+                if getgenv().notify then
+                    return getgenv().notify("Warning", "Anti Vehicle Fling already enabled.", 5)
+                end
+                return
+            end
+
+            getgenv().VehicleDestroyer_Enabled = true
+            clearConnections()
+
+            local vehiclesFolder = Workspace:FindFirstChild("Vehicles")
+            if vehiclesFolder then
+                setupVehiclesFolder(vehiclesFolder)
+            end
+
+            local folderConn = Workspace.ChildAdded:Connect(function(child)
+                if not getgenv().VehicleDestroyer_Enabled then return end
+                if child.Name == "Vehicles" and child:IsA("Folder") then
+                    setupVehiclesFolder(child)
+                end
+            end)
+
+            table.insert(getgenv().VehicleDestroyer_Connections, folderConn)
+        elseif state == false then
+            if not getgenv().VehicleDestroyer_Enabled then
+                if getgenv().notify then
+                    return getgenv().notify("Warning", "Anti Vehicle Fling not enabled.", 5)
+                end
+                return
+            end
+
+            getgenv().VehicleDestroyer_Enabled = false
+            clearConnections()
+
+            if getgenv().notify then
+                getgenv().notify("Success", "Anti Vehicle Fling disabled.", 5)
+            end
+        end
     end
 end
 
