@@ -674,7 +674,7 @@ wait(0.2)
 getgenv().AntiSitActive = getgenv().AntiSitActive or false
 getgenv().AntiSitToken = getgenv().AntiSitToken or 0
 wait(0.1)
-getgenv().toggle_anti_sit_func = function(toggle)
+getgenv().toggle_anti_sit_func = getgenv().toggle_anti_sit_func or function(toggle)
     if toggle == true then
         if getgenv().AntiSitActive then
             show_notification("Failure:", "NoSit/AntiSit is already enabled!", "Warning")
@@ -687,7 +687,6 @@ getgenv().toggle_anti_sit_func = function(toggle)
 
         getgenv().AntiSitActive = true
         getgenv().Not_Ever_Sitting = true
-
         getgenv().Anti_Sitting_Task_Loop_Function = task.spawn(function()
             while getgenv().Not_Ever_Sitting == true do
                 task.wait()
