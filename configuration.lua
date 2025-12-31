@@ -103,57 +103,22 @@ Workspace = get_or_set("Workspace", safe_wrap("Workspace"))
 Modules = get_or_set("Modules", ReplicatedStorage:WaitForChild("Modules"))
 Core = get_or_set("Core", Modules:WaitForChild("Core"))
 Game_Folder = get_or_set("Game_Folder", Modules:WaitForChild("Game"))
-
-if executor_contains("LX63") then
-    local targets = {
-        "InvisibleMode",
-        "CharacterBillboardGui",
-        "PlotMarker",
-        "Data",
-        "Phone",
-        "Privacy",
-        "Messages",
-        "CCTV",
-        "Tween",
-        "Seat",
-        "Blur"
-    }
-
-    for _, target in ipairs(targets) do
-        for _, obj in pairs(getgc(true)) do
-            if typeof(obj) == "table" then
-                local info
-                for _, v in pairs(obj) do
-                    if typeof(v) == "function" then
-                        info = debug.getinfo(v)
-                        break
-                    end
-                end
-                if info and info.source and info.source:find(target) then
-                    get_or_set(target, obj)
-                    break
-                end
-            end
-        end
-    end
-else
-    InvisibleMode = get_or_set("InvisibleMode", require(Game_Folder:FindFirstChild("InvisibleMode")))
-    CharacterBillboardGui = get_or_set("CharacterBillboardGui", require(Game_Folder:FindFirstChild("CharacterBillboardGui")))
-    PlotMarker = get_or_set("PlotMarker", require(Game_Folder:FindFirstChild("PlotMarker")))
-    Data = get_or_set("Data", require(Core:FindFirstChild("Data")))
-    Phone_Module = get_or_set("Phone_Module", Game_Folder:FindFirstChild("Phone"))
-    Phone = get_or_set("Phone", require(Game_Folder:FindFirstChild("Phone")))
-    Privacy = get_or_set("Privacy", require(Core:FindFirstChild("Privacy")))
-    AppModules = get_or_set("AppModules", Phone_Module:FindFirstChild("AppModules"))
-    Messages = get_or_set("Messages", require(AppModules:FindFirstChild("Messages")))
-    Network = get_or_set("Network", require(Core:FindFirstChild("Net")))
-    CCTV = get_or_set("CCTV", require(Game_Folder:FindFirstChild("CCTV")))
-    Tween = get_or_set("Tween", require(Core:FindFirstChild("Tween")))
-    Seat = get_or_set("Seat", require(Game_Folder:FindFirstChild("Seat")))
-    Blur = get_or_set("Blur", require(Core:FindFirstChild("Blur")))
-    RateLimiter = get_or_set("RateLimiter", require(Core:FindFirstChild("RateLimiter")))
-    UI = get_or_set("UI", require(Core:FindFirstChild("UI")))
-end
+InvisibleMode = get_or_set("InvisibleMode", require(Game_Folder:FindFirstChild("InvisibleMode")))
+CharacterBillboardGui = get_or_set("CharacterBillboardGui", require(Game_Folder:FindFirstChild("CharacterBillboardGui")))
+PlotMarker = get_or_set("PlotMarker", require(Game_Folder:FindFirstChild("PlotMarker")))
+Data = get_or_set("Data", require(Core:FindFirstChild("Data")))
+Phone_Module = get_or_set("Phone_Module", Game_Folder:FindFirstChild("Phone"))
+Phone = get_or_set("Phone", require(Game_Folder:FindFirstChild("Phone")))
+Privacy = get_or_set("Privacy", require(Core:FindFirstChild("Privacy")))
+AppModules = get_or_set("AppModules", Phone_Module:FindFirstChild("AppModules"))
+Messages = get_or_set("Messages", require(AppModules:FindFirstChild("Messages")))
+Network = get_or_set("Network", require(Core:FindFirstChild("Net")))
+CCTV = get_or_set("CCTV", require(Game_Folder:FindFirstChild("CCTV")))
+Tween = get_or_set("Tween", require(Core:FindFirstChild("Tween")))
+Seat = get_or_set("Seat", require(Game_Folder:FindFirstChild("Seat")))
+Blur = get_or_set("Blur", require(Core:FindFirstChild("Blur")))
+RateLimiter = get_or_set("RateLimiter", require(Core:FindFirstChild("RateLimiter")))
+UI = get_or_set("UI", require(Core:FindFirstChild("UI")))
 
 function set_enrolled_state(state)
     local valid = (state == "enabled" or state == "disabled")
