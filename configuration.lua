@@ -534,7 +534,7 @@ function anti_outfit_copier(toggle)
         end
 
         getgenv().notify("Success", "Anti Outfit Stealer is now active.", 5)
-        getgenv().notify("Info", "NOTE: UNHIDE YOUR NAME AND do NOT change your Bio, this will not work otherwise (it'll auto-change back for you though incase you do)", 15)
+        getgenv().notify("Warning", "NOTE: Hide your name when using this.", 15)
         wait()
         local RunService = getgenv().RunService
         getgenv().AntiFitStealerConn = nil
@@ -549,10 +549,16 @@ function anti_outfit_copier(toggle)
                 end
 
                 local bio = getgenv().LocalPlayer:GetAttribute("bio")
+                local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
 
-                if bio and bio ~= "Flames Hub | Anti Stealer is: ON." then
-                    getgenv().Send("bio", "Flames Hub | Anti Stealer is: ON.")
+                if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
+                    getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
                     getgenv().notify("Success", "Bio changed, reverted change.", 2)
+                end
+
+                if hide_name and hide_name == false then
+                    getgenv().Send("hide_name", true)
+                    getgenv().notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
                 end
                 return 
             else
@@ -562,10 +568,16 @@ function anti_outfit_copier(toggle)
             getgenv().AntiFitStealerConn = getgenv().RunService.Heartbeat:Connect(function()
                 task.wait(0.4)
                 local bio = getgenv().LocalPlayer:GetAttribute("bio")
+                local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
 
-                if bio and bio ~= "Flames Hub | Anti Stealer is: ON." then
-                getgenv().Send("bio", "Flames Hub | Anti Stealer is: ON.")
-                getgenv().notify("Success", "Bio changed, reverted change.", 3)
+                if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
+                    getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
+                    getgenv().notify("Success", "Bio changed, reverted change.", 3)
+                end
+
+                if hide_name and hide_name == false then
+                    getgenv().Send("hide_name", true)
+                    getgenv().notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
                 end
             end)
         end
@@ -608,7 +620,6 @@ local function find_seat_module()
         end
     end
 end
-
 wait(0.2)
 function anti_sit_func(toggle)
     getgenv().Seat = require(getgenv().Game_Folder:FindFirstChild("Seat"))
