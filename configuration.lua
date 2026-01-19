@@ -521,20 +521,21 @@ function RGB_Vehicle(Boolean)
     end
 end
 
-getgenv().AntiOutfitStealerConn = getgenv().AntiOutfitStealerConn or nil
+getgenv().AntiFitStealerConn = getgenv().AntiFitStealerConn or nil
 local Old_Bio = getgenv().LocalPlayer:GetAttribute("bio") or "DEFAULT"
+local Old_Hidden_Name_State = getgenv().LocalPlayer:GetAttribute("hide_name") or false
 wait(0.2)
-function anti_outfit_copier(toggle)
+getgenv().anti_outfit_copier = function(toggle)
     if toggle == true then
         if getgenv().anti_outfit_stealer then
-            return getgenv().notify("Error", "Anti Outfit Stealer is already enabled!", 5)
+            return notify("Error", "Anti Outfit Stealer is already enabled!", 5)
         end
         if getgenv().AntiFitStealerConn then
-            return getgenv().notify("Error", "Anti Outfit Stealer is already enabled! [connection]", 5)
+            return notify("Error", "Anti Outfit Stealer is already enabled! [connection]", 5)
         end
 
-        getgenv().notify("Success", "Anti Outfit Stealer is now active.", 5)
-        getgenv().notify("Warning", "NOTE: Hide your name when using this.", 15)
+        notify("Success", "Anti Outfit Stealer is now active.", 5)
+        notify("Warning", "NOTE: Hide your name when using this.", 15)
         wait()
         local RunService = getgenv().RunService
         getgenv().AntiFitStealerConn = nil
@@ -553,12 +554,12 @@ function anti_outfit_copier(toggle)
 
                 if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
                     getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
-                    getgenv().notify("Success", "Bio changed, reverted change.", 2)
+                    notify("Success", "Bio changed, reverted change.", 2)
                 end
 
-                if hide_name and hide_name == false then
+                if hide_name_val and hide_name_val == false then
                     getgenv().Send("hide_name", true)
-                    getgenv().notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
+                    notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
                 end
                 return 
             else
@@ -572,12 +573,12 @@ function anti_outfit_copier(toggle)
 
                 if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
                     getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
-                    getgenv().notify("Success", "Bio changed, reverted change.", 3)
+                    notify("Success", "Bio changed, reverted change.", 3)
                 end
 
-                if hide_name and hide_name == false then
+                if hide_name_val and hide_name_val == false then
                     getgenv().Send("hide_name", true)
-                    getgenv().notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
+                    notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
                 end
             end)
         end
@@ -585,7 +586,7 @@ function anti_outfit_copier(toggle)
         getgenv().ToggleAntiFit_Stealer(true)
     elseif toggle == false then
         if not getgenv().anti_outfit_stealer then
-            return getgenv().notify("Error", "Anti Outfit Copier is not enabled!", 5)
+            return notify("Error", "Anti Outfit Copier is not enabled!", 5)
         end
 
         if getgenv().anti_outfit_stealer then
@@ -596,8 +597,9 @@ function anti_outfit_copier(toggle)
             getgenv().AntiFitStealerConn = nil
         end
         getgenv().ToggleAntiFit_Stealer(false)
-        getgenv().notify("Success", "Disabled Anti Outfit Stealer.", 5)
+        notify("Success", "Disabled Anti Outfit Stealer.", 5)
         getgenv().Send("bio", tostring(Old_Bio))
+        getgenv().Send("hide_name", Old_Hidden_Name_State)
     else
         return 
     end
