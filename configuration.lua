@@ -522,6 +522,7 @@ end
 getgenv().AntiFitStealerConn = getgenv().AntiFitStealerConn or nil
 local Old_Bio = getgenv().LocalPlayer:GetAttribute("bio") or "DEFAULT"
 local Old_Hidden_Name_State = getgenv().LocalPlayer:GetAttribute("hide_name") or false
+local View_Outfit_State_Toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit") or true -- because why 'false'?
 wait(0.2)
 getgenv().anti_outfit_copier = function(toggle)
     if toggle == true then
@@ -549,6 +550,7 @@ getgenv().anti_outfit_copier = function(toggle)
 
                 local bio = getgenv().LocalPlayer:GetAttribute("bio")
                 local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
+                local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
 
                 if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
                     getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
@@ -559,6 +561,11 @@ getgenv().anti_outfit_copier = function(toggle)
                     getgenv().Send("hide_name", true)
                     notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
                 end
+
+                if hide_outfit_toggle and hide_outfit_toggle == false then
+                    getgenv().Send("hide_view_outfit", true)
+                    notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
+                end
                 return 
             else
                 getgenv().anti_outfit_stealer = true
@@ -568,6 +575,7 @@ getgenv().anti_outfit_copier = function(toggle)
                 task.wait(0.4)
                 local bio = getgenv().LocalPlayer:GetAttribute("bio")
                 local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
+                local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
 
                 if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
                     getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
@@ -577,6 +585,11 @@ getgenv().anti_outfit_copier = function(toggle)
                 if hide_name_val and hide_name_val == false then
                     getgenv().Send("hide_name", true)
                     notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
+                end
+
+                if hide_outfit_toggle and hide_outfit_toggle == false then
+                    getgenv().Send("hide_view_outfit", true)
+                    notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
                 end
             end)
         end
