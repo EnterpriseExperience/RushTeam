@@ -1,8 +1,6 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
 
-if not getgenv().Game then
-    getgenv().Game = game
-end
+getgenv().Game = game
 
 if getgenv().FlamesConfigManager then
 	return 
