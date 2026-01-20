@@ -533,10 +533,10 @@ getgenv().anti_outfit_copier = function(toggle)
             return notify("Error", "Anti Outfit Stealer is already enabled! [connection]", 5)
         end
 
-        notify("Success", "Anti Outfit Stealer is now active.", 5)
+        notify("Success", "Flames Hub | Anti Outfit Stealer is now active.", 7)
         notify("Warning", "NOTE: Hide your name when using this.", 15)
         wait()
-        local RunService = getgenv().RunService
+        local RunService = getgenv().RunService or game:GetService("RunService")
         getgenv().AntiFitStealerConn = nil
 
         getgenv().ToggleAntiFit_Stealer = function(state)
@@ -552,8 +552,8 @@ getgenv().anti_outfit_copier = function(toggle)
                 local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
                 local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
 
-                if bio and bio ~= "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected and cannot be stolen by other people/script users." then
-                    getgenv().Send("bio", "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected and cannot be stolen by other people/script users.")
+                if bio and bio ~= "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected." then
+                    getgenv().Send("bio", "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected.")
                     notify("Success", "Bio changed, reverted change.", 2)
                 end
 
@@ -577,8 +577,8 @@ getgenv().anti_outfit_copier = function(toggle)
                 local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
                 local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
 
-                if bio and bio ~= "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected and cannot be stolen by other people/script users." then
-                    getgenv().Send("bio", "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected and cannot be stolen by other people/script users.")
+                if bio and bio ~= "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected." then
+                    getgenv().Send("bio", "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected.")
                     notify("Success", "Bio changed, reverted change.", 3)
                 end
 
