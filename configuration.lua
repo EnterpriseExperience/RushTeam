@@ -552,8 +552,8 @@ getgenv().anti_outfit_copier = function(toggle)
                 local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
                 local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
 
-                if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
-                    getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
+                if bio and bio ~= "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected and cannot be stolen by other people/script users." then
+                    getgenv().Send("bio", "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected and cannot be stolen by other people/script users.")
                     notify("Success", "Bio changed, reverted change.", 2)
                 end
 
@@ -577,8 +577,8 @@ getgenv().anti_outfit_copier = function(toggle)
                 local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
                 local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
 
-                if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
-                    getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
+                if bio and bio ~= "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected and cannot be stolen by other people/script users." then
+                    getgenv().Send("bio", "Flames Hub Anti Stealer is now: Enabled | Your outfits now are protected and cannot be stolen by other people/script users.")
                     notify("Success", "Bio changed, reverted change.", 3)
                 end
 
