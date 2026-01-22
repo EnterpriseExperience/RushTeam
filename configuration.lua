@@ -521,7 +521,6 @@ end
 
 getgenv().AntiFitStealerConn = getgenv().AntiFitStealerConn or nil
 local Old_Bio = getgenv().LocalPlayer:GetAttribute("bio") or "DEFAULT"
-local Old_Hidden_Name_State = getgenv().LocalPlayer:GetAttribute("hide_name") or false
 local View_Outfit_State_Toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit") or true -- because why 'false'?
 wait(0.2)
 getgenv().anti_outfit_copier = function(toggle)
@@ -534,7 +533,6 @@ getgenv().anti_outfit_copier = function(toggle)
         end
 
         notify("Success", "Flames Hub | Anti Outfit Stealer is now active.", 7)
-        notify("Warning", "NOTE: Hide your name when using this.", 15)
         wait()
         local RunService = getgenv().RunService or game:GetService("RunService")
         getgenv().AntiFitStealerConn = nil
@@ -549,17 +547,11 @@ getgenv().anti_outfit_copier = function(toggle)
                 end
 
                 local bio = getgenv().LocalPlayer:GetAttribute("bio")
-                local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
                 local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
 
                 if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
                     getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
                     notify("Success", "Bio changed, reverted change.", 2)
-                end
-
-                if hide_name_val and hide_name_val == false then
-                    getgenv().Send("hide_name", true)
-                    notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
                 end
 
                 if hide_outfit_toggle and hide_outfit_toggle == false then
@@ -574,17 +566,11 @@ getgenv().anti_outfit_copier = function(toggle)
             getgenv().AntiFitStealerConn = getgenv().RunService.Heartbeat:Connect(function()
                 task.wait(0.4)
                 local bio = getgenv().LocalPlayer:GetAttribute("bio")
-                local hide_name_val = getgenv().LocalPlayer:GetAttribute("hide_name")
                 local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
 
                 if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
                     getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
                     notify("Success", "Bio changed, reverted change.", 3)
-                end
-
-                if hide_name_val and hide_name_val == false then
-                    getgenv().Send("hide_name", true)
-                    notify("Success", "hide_name setting changed, reverted change (keep it hidden).", 3)
                 end
 
                 if hide_outfit_toggle and hide_outfit_toggle == false then
@@ -610,7 +596,6 @@ getgenv().anti_outfit_copier = function(toggle)
         getgenv().ToggleAntiFit_Stealer(false)
         notify("Success", "Disabled Anti Outfit Stealer.", 5)
         getgenv().Send("bio", tostring(Old_Bio))
-        getgenv().Send("hide_name", Old_Hidden_Name_State)
     else
         return 
     end
