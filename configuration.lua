@@ -212,6 +212,8 @@ local function freepay_func(state)
     end
 end
 
+getgenv().set_enrolled_state("enabled")
+
 if not getgenv().FreePayFuncToggle then
     getgenv().FreePayFuncToggle = freepay_func
 end
