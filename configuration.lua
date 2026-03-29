@@ -276,8 +276,6 @@ function RGB_Phone(Boolean)
     end
 end
 
-
-
 getgenv().Noclip_Enabled = getgenv().Noclip_Enabled or false
 getgenv().Noclip_Connection = getgenv().Noclip_Connection or nil
 local RunService = getgenv().RunService or game:GetService("RunService")
@@ -445,56 +443,55 @@ getgenv().anti_outfit_copier = function(toggle)
     end
 end
 
-local is_enabled
-
-local function find_seat_module()
-    for _, obj in pairs(getgc(true)) do
-        if typeof(obj) == "table" then
-            for _, v in pairs(obj) do
-                if typeof(v) == "function" then
-                    local ok, info = pcall(debug.getinfo, v)
-                    if ok and info and info.source and info.source:find("Seat", 1, true) then
-                        getgenv().Seat = obj
-                        return obj
-                    end
-                end
-            end
-        end
+local FL = getgenv().FlamesLibrary
+local function safe_require_seat()
+    local ok, result = pcall(function()
+        return require(getgenv().Game_Folder:FindFirstChild("Seat"))
+    end)
+    if ok and result then
+        getgenv().Seat = result
+        return result
     end
+    return nil
 end
-wait(0.2)
+
 function anti_sit_func(toggle)
-    getgenv().Seat = require(getgenv().Game_Folder:FindFirstChild("Seat"))
-    wait(0.1)
+    local seat = safe_require_seat()
+    if not seat then
+        return getgenv().notify("Error", "Failed to load Seat module!", 5)
+    end
+    local seat_set = FL.safe_func(seat.enabled and seat.enabled.set)
+    local hum_set = FL.safe_func(getgenv().Humanoid and getgenv().Humanoid.SetStateEnabled)
+
     if toggle == true then
-        if getgenv().Not_Ever_Sitting then
+        if FL.is_alive("anti_sit_loop") then
             return getgenv().notify("Warning", "AntiSit is already enabled!", 5)
         end
 
+        getgenv().Not_Ever_Sitting = true
         getgenv().notify("Success", "Anti-Sit is now enabled!", 5)
         show_notification("Success:", "Anti-Sit is now enabled!", "Normal")
-        wait(0.2)
-        getgenv().Not_Ever_Sitting = true
 
-        task.spawn(function()
-            while getgenv().Not_Ever_Sitting == true do
-            task.wait()
-                getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-                getgenv().Seat.enabled.set(false)
+        FL.spawn("anti_sit_loop", "spawn", function()
+            while getgenv().Not_Ever_Sitting do
+                task.wait(0)
+                pcall(hum_set, getgenv().Humanoid, Enum.HumanoidStateType.Seated, false)
+                pcall(seat_set, false)
             end
         end)
     elseif toggle == false then
-        if not getgenv().Not_Ever_Sitting then
+        if not FL.is_alive("anti_sit_loop") then
             return getgenv().notify("Warning", "AntiSit is not enabled!", 5)
         end
 
         getgenv().Not_Ever_Sitting = false
-        wait(0.2)
-        getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-        getgenv().Seat.enabled.set(true)
-        wait(0.1)
+        FL.disconnect("anti_sit_loop")
+        task.wait(0.1)
+        pcall(hum_set, getgenv().Humanoid, Enum.HumanoidStateType.Seated, true)
+        pcall(seat_set, true)
+        task.wait(0.1)
         getgenv().notify("Success", "Sitting is now enabled!", 5)
-        Phone.show_notification("Success:", "Sitting is now enabled!", "Normal")
+        show_notification("Success:", "Sitting is now enabled!", "Normal")
     end
 end
 
@@ -507,7 +504,7 @@ function anti_void(toggle)
             return getgenv().notify("Warning", "Anti-Void is already enabled!", 5)
         end
 
-        getgenv().Workspace.FallenPartsDestroyHeight = -9e9
+        workspace.FallenPartsDestroyHeight = -9e9
         getgenv().notify("Success", "Enabled anti-void.", 5)
         getgenv().Anti_Void_Enabled_Bool = true
     elseif toggle == false then
