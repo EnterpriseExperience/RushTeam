@@ -51,7 +51,7 @@ CoreGui = get_or_set("CoreGui", safe_wrap("CoreGui"))
 RunService = get_or_set("RunService", safe_wrap("RunService"))
 local parent_gui = CoreGui
 local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/EnterpriseExperience/MicUpSource/refs/heads/main/Notification_Lib.lua"))()
-local FL = getgenv().FlamesLibrary
+
 local function retrieve_executor()
     local name
     if identifyexecutor then
@@ -276,6 +276,8 @@ function RGB_Phone(Boolean)
     end
 end
 
+
+
 getgenv().Noclip_Enabled = getgenv().Noclip_Enabled or false
 getgenv().Noclip_Connection = getgenv().Noclip_Connection or nil
 local RunService = getgenv().RunService or game:GetService("RunService")
@@ -443,33 +445,42 @@ getgenv().anti_outfit_copier = function(toggle)
     end
 end
 
-if not getgenv().Seat then
-    local ok, result = pcall(function()
-        return require(getgenv().Game_Folder:FindFirstChild("Seat"))
-    end)
-    if ok and result then
-        getgenv().Seat = result
+local is_enabled
+
+local function find_seat_module()
+    for _, obj in pairs(getgc(true)) do
+        if typeof(obj) == "table" then
+            for _, v in pairs(obj) do
+                if typeof(v) == "function" then
+                    local ok, info = pcall(debug.getinfo, v)
+                    if ok and info and info.source and info.source:find("Seat", 1, true) then
+                        getgenv().Seat = obj
+                        return obj
+                    end
+                end
+            end
+        end
     end
 end
-wait(0.1)
+wait(0.2)
 function anti_sit_func(toggle)
+    getgenv().Seat = require(getgenv().Game_Folder:FindFirstChild("Seat"))
+    wait(0.1)
     if toggle == true then
         if getgenv().Not_Ever_Sitting then
             return getgenv().notify("Warning", "AntiSit is already enabled!", 5)
         end
 
-        getgenv().Not_Ever_Sitting = true
         getgenv().notify("Success", "Anti-Sit is now enabled!", 5)
         show_notification("Success:", "Anti-Sit is now enabled!", "Normal")
+        wait(0.2)
+        getgenv().Not_Ever_Sitting = true
+
         task.spawn(function()
             while getgenv().Not_Ever_Sitting == true do
-                task.wait(0)
-                local hum = getgenv().Humanoid
-                if hum then pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) end) end
-                local seat = getgenv().Seat
-                if seat and seat.enabled and seat.enabled.set then
-                    pcall(seat.enabled.set, false)
-                end
+            task.wait()
+                getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+                getgenv().Seat.enabled.set(false)
             end
         end)
     elseif toggle == false then
@@ -478,17 +489,12 @@ function anti_sit_func(toggle)
         end
 
         getgenv().Not_Ever_Sitting = false
-
-        local hum = getgenv().Humanoid
-        if hum then
-            pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) end)
-        end
-        local seat = getgenv().Seat
-        if seat and seat.enabled and seat.enabled.set then
-            pcall(seat.enabled.set, true)
-        end
+        wait(0.2)
+        getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+        getgenv().Seat.enabled.set(true)
+        wait(0.1)
         getgenv().notify("Success", "Sitting is now enabled!", 5)
-        show_notification("Success:", "Sitting is now enabled!", "Normal")
+        Phone.show_notification("Success:", "Sitting is now enabled!", "Normal")
     end
 end
 
@@ -501,7 +507,7 @@ function anti_void(toggle)
             return getgenv().notify("Warning", "Anti-Void is already enabled!", 5)
         end
 
-        workspace.FallenPartsDestroyHeight = -9e9
+        getgenv().Workspace.FallenPartsDestroyHeight = -9e9
         getgenv().notify("Success", "Enabled anti-void.", 5)
         getgenv().Anti_Void_Enabled_Bool = true
     elseif toggle == false then
@@ -736,55 +742,46 @@ if not getgenv().anti_car_fling then
     end
 end
 
-if isfile and (not isfile(config_path)) then pcall(function() writefile(config_path, HttpService:JSONEncode(default_config)) end) end
+if not isfile(config_path) then
+   writefile(config_path, HttpService:JSONEncode(default_config))
+end
 
 local config = HttpService:JSONDecode(readfile(config_path))
-local function save_config() pcall(function() writefile(config_path, HttpService:JSONEncode(config)) end) end
+local function save_config()
+   writefile(config_path, HttpService:JSONEncode(config))
+end
 
 if config.Enrolled ~= "enabled" then
     return 
 end
 
-local Flames_Admin_Configuration_ScreenGui = Instance.new("ScreenGui")
-Flames_Admin_Configuration_ScreenGui.Name = "FlamesAdminGUI"
-Flames_Admin_Configuration_ScreenGui.Enabled = false
-Flames_Admin_Configuration_ScreenGui.ResetOnSpawn = false
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FlamesAdminGUI"
+ScreenGui.Parent = parent_gui
+ScreenGui.Enabled = false
+ScreenGui.ResetOnSpawn = false
 
-if gethui and typeof(gethui) == "function" then
-    Flames_Admin_Configuration_ScreenGui.Parent = gethui()
-elseif syn and syn.protect_gui then
-    syn.protect_gui(Flames_Admin_Configuration_ScreenGui)
-    Flames_Admin_Configuration_ScreenGui.Parent = CoreGui
-elseif protect_gui then
-    protect_gui(Flames_Admin_Configuration_ScreenGui)
-    Flames_Admin_Configuration_ScreenGui.Parent = CoreGui
-elseif get_hidden_gui and typeof(get_hidden_gui) == "function" then
-    Flames_Admin_Configuration_ScreenGui.Parent = get_hidden_gui()
-else
-    Flames_Admin_Configuration_ScreenGui.Parent = getgenv().PlayerGui or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-end
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 300, 0, 400)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+Frame.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+Frame.BorderSizePixel = 0
+Frame.Parent = ScreenGui
+Frame.Active = true
+Frame.Draggable = true
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
 
-local FlamesAdmin_Configuration_Main_Frame_For_GUI = Instance.new("Frame")
-FlamesAdmin_Configuration_Main_Frame_For_GUI.Size = UDim2.new(0, 300, 0, 400)
-FlamesAdmin_Configuration_Main_Frame_For_GUI.Position = UDim2.new(0.5, -150, 0.5, -200)
-FlamesAdmin_Configuration_Main_Frame_For_GUI.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-FlamesAdmin_Configuration_Main_Frame_For_GUI.BorderSizePixel = 0
-FlamesAdmin_Configuration_Main_Frame_For_GUI.Parent = Flames_Admin_Configuration_ScreenGui
-FlamesAdmin_Configuration_Main_Frame_For_GUI.Active = true
-FlamesAdmin_Configuration_Main_Frame_For_GUI.Draggable = true
-Instance.new("UICorner", FlamesAdmin_Configuration_Main_Frame_For_GUI).CornerRadius = UDim.new(0, 12)
-
-local Title = Instance.new("TextLabel", FlamesAdmin_Configuration_Main_Frame_For_GUI)
+local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(0.850000024, 0, 0, 45)
 Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "👑 Flames Admin | Config 👑"
+Title.Text = "✅ Flames Admin | Config 👑"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 14
 Title.TextScaled = false
 
-local Close = Instance.new("TextButton", FlamesAdmin_Configuration_Main_Frame_For_GUI)
+local Close = Instance.new("TextButton", Frame)
 Close.Size = UDim2.new(0, 35, 0, 35)
 Close.Position = UDim2.new(1, -40, 0, 5)
 Close.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -794,7 +791,7 @@ Close.Font = Enum.Font.GothamBold
 Close.TextScaled = true
 Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 8)
 Close.MouseButton1Click:Connect(function()
-   Flames_Admin_Configuration_ScreenGui.Enabled = false
+   ScreenGui.Enabled = false
 end)
 
 getgenv().Flames_Features = getgenv().Flames_Features or {}
@@ -864,23 +861,23 @@ local function handle_toggle(name, state)
 end
 
 local function create_toggle(name, order)
-    local Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle = Instance.new("TextButton", FlamesAdmin_Configuration_Main_Frame_For_GUI)
-    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Size = UDim2.new(1, -20, 0, 35)
-    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Position = UDim2.new(0, 10, 0, 50 + (order - 1) * 40)
-    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Font = Enum.Font.Gotham
-    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.TextScaled = true
-    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
-    Instance.new("UICorner", Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle).CornerRadius = UDim.new(0, 8)
+    local Button = Instance.new("TextButton", Frame)
+    Button.Size = UDim2.new(1, -20, 0, 35)
+    Button.Position = UDim2.new(0, 10, 0, 50 + (order - 1) * 40)
+    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.Font = Enum.Font.Gotham
+    Button.TextScaled = true
+    Button.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
+    Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 8)
 
     if config[name] == "enabled" then
         handle_toggle(name, "enabled")
     end
 
-    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.MouseButton1Click:Connect(function()
+    Button.MouseButton1Click:Connect(function()
         config[name] = (config[name] == "enabled") and "disabled" or "enabled"
-        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
+        Button.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
         save_config()
         handle_toggle(name, config[name])
     end)
@@ -890,7 +887,7 @@ local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", 
 
 local function update_frame_size()
    local total_height = 50 + (#toggles * 40) + 10
-   FlamesAdmin_Configuration_Main_Frame_For_GUI.Size = UDim2.new(0, 300, 0, total_height)
+   Frame.Size = UDim2.new(0, 300, 0, total_height)
 end
 
 for i, t in ipairs(toggles) do
