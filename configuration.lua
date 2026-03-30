@@ -472,13 +472,15 @@ function anti_sit_func(toggle)
         getgenv().notify("Success", "Anti-Sit is now enabled!", 5)
         show_notification("Success:", "Anti-Sit is now enabled!", "Normal")
 
-        FL.spawn("anti_sit_loop", "spawn", function()
-            while getgenv().Not_Ever_Sitting do
-                task.wait(0)
-                pcall(hum_set, getgenv().Humanoid, Enum.HumanoidStateType.Seated, false)
-                pcall(seat_set, false)
+        FL.connect("anti_sit_loop", RunService.Heartbeat:Connect(function()
+            if not getgenv().Not_Ever_Sitting then
+                FL.disconnect("anti_sit_loop")
+                return
             end
-        end)
+            pcall(hum_set, getgenv().Humanoid, Enum.HumanoidStateType.Seated, false)
+            pcall(seat_set, false)
+        end))
+
     elseif toggle == false then
         if not FL.is_alive("anti_sit_loop") then
             return getgenv().notify("Warning", "AntiSit is not enabled!", 5)
