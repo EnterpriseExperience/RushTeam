@@ -745,36 +745,45 @@ if not getgenv().anti_car_fling then
     end
 end
 
-if not isfile(config_path) then
-   writefile(config_path, HttpService:JSONEncode(default_config))
-end
+if isfile and (not isfile(config_path)) then pcall(function() writefile(config_path, HttpService:JSONEncode(default_config)) end) end
 
 local config = HttpService:JSONDecode(readfile(config_path))
-local function save_config()
-   writefile(config_path, HttpService:JSONEncode(config))
-end
+local function save_config() pcall(function() writefile(config_path, HttpService:JSONEncode(config)) end) end
 
 if config.Enrolled ~= "enabled" then
     return 
 end
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "FlamesAdminGUI"
-ScreenGui.Parent = parent_gui
-ScreenGui.Enabled = false
-ScreenGui.ResetOnSpawn = false
+local Flames_Admin_Configuration_ScreenGui = Instance.new("ScreenGui")
+Flames_Admin_Configuration_ScreenGui.Name = "FlamesAdminGUI"
+Flames_Admin_Configuration_ScreenGui.Enabled = false
+Flames_Admin_Configuration_ScreenGui.ResetOnSpawn = false
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 300, 0, 400)
-Frame.Position = UDim2.new(0.5, -150, 0.5, -200)
-Frame.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-Frame.BorderSizePixel = 0
-Frame.Parent = ScreenGui
-Frame.Active = true
-Frame.Draggable = true
-Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
+if gethui and typeof(gethui) == "function" then
+    Flames_Admin_Configuration_ScreenGui.Parent = gethui()
+elseif syn and syn.protect_gui then
+    syn.protect_gui(Flames_Admin_Configuration_ScreenGui)
+    Flames_Admin_Configuration_ScreenGui.Parent = CoreGui
+elseif protect_gui then
+    protect_gui(Flames_Admin_Configuration_ScreenGui)
+    Flames_Admin_Configuration_ScreenGui.Parent = CoreGui
+elseif get_hidden_gui and typeof(get_hidden_gui) == "function" then
+    Flames_Admin_Configuration_ScreenGui.Parent = get_hidden_gui()
+else
+    Flames_Admin_Configuration_ScreenGui.Parent = getgenv().PlayerGui or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+end
 
-local Title = Instance.new("TextLabel", Frame)
+local FlamesAdmin_Configuration_Main_Frame_For_GUI = Instance.new("Frame")
+FlamesAdmin_Configuration_Main_Frame_For_GUI.Size = UDim2.new(0, 300, 0, 400)
+FlamesAdmin_Configuration_Main_Frame_For_GUI.Position = UDim2.new(0.5, -150, 0.5, -200)
+FlamesAdmin_Configuration_Main_Frame_For_GUI.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+FlamesAdmin_Configuration_Main_Frame_For_GUI.BorderSizePixel = 0
+FlamesAdmin_Configuration_Main_Frame_For_GUI.Parent = Flames_Admin_Configuration_ScreenGui
+FlamesAdmin_Configuration_Main_Frame_For_GUI.Active = true
+FlamesAdmin_Configuration_Main_Frame_For_GUI.Draggable = true
+Instance.new("UICorner", FlamesAdmin_Configuration_Main_Frame_For_GUI).CornerRadius = UDim.new(0, 12)
+
+local Title = Instance.new("TextLabel", FlamesAdmin_Configuration_Main_Frame_For_GUI)
 Title.Size = UDim2.new(0.850000024, 0, 0, 45)
 Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundTransparency = 1
@@ -784,7 +793,7 @@ Title.Font = Enum.Font.GothamBold
 Title.TextSize = 14
 Title.TextScaled = false
 
-local Close = Instance.new("TextButton", Frame)
+local Close = Instance.new("TextButton", FlamesAdmin_Configuration_Main_Frame_For_GUI)
 Close.Size = UDim2.new(0, 35, 0, 35)
 Close.Position = UDim2.new(1, -40, 0, 5)
 Close.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
@@ -794,7 +803,7 @@ Close.Font = Enum.Font.GothamBold
 Close.TextScaled = true
 Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 8)
 Close.MouseButton1Click:Connect(function()
-   ScreenGui.Enabled = false
+   Flames_Admin_Configuration_ScreenGui.Enabled = false
 end)
 
 getgenv().Flames_Features = getgenv().Flames_Features or {}
@@ -864,23 +873,25 @@ local function handle_toggle(name, state)
 end
 
 local function create_toggle(name, order)
-    local Button = Instance.new("TextButton", Frame)
-    Button.Size = UDim2.new(1, -20, 0, 35)
-    Button.Position = UDim2.new(0, 10, 0, 50 + (order - 1) * 40)
-    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.Font = Enum.Font.Gotham
-    Button.TextScaled = true
-    Button.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
-    Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 8)
+    pcall(function()
+        local Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle = Instance.new("TextButton", FlamesAdmin_Configuration_Main_Frame_For_GUI)
+        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Size = UDim2.new(1, -20, 0, 35)
+        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Position = UDim2.new(0, 10, 0, 50 + (order - 1) * 40)
+        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Font = Enum.Font.Gotham
+        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.TextScaled = true
+        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
+        Instance.new("UICorner", Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle).CornerRadius = UDim.new(0, 8)
+    end)
 
     if config[name] == "enabled" then
         handle_toggle(name, "enabled")
     end
 
-    Button.MouseButton1Click:Connect(function()
+    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.MouseButton1Click:Connect(function()
         config[name] = (config[name] == "enabled") and "disabled" or "enabled"
-        Button.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
+        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
         save_config()
         handle_toggle(name, config[name])
     end)
@@ -890,11 +901,11 @@ local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", 
 
 local function update_frame_size()
    local total_height = 50 + (#toggles * 40) + 10
-   Frame.Size = UDim2.new(0, 300, 0, total_height)
+   FlamesAdmin_Configuration_Main_Frame_For_GUI.Size = UDim2.new(0, 300, 0, total_height)
 end
 
 for i, t in ipairs(toggles) do
-   create_toggle(t, i)
+   pcall(function() create_toggle(t, i) end)
 end
 
 update_frame_size()
