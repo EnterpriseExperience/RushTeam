@@ -903,7 +903,7 @@ local function update_frame_size()
 end
 
 for i, t in ipairs(toggles) do
-   pcall(function() create_toggle(t, i) end)
+   create_toggle(t, i)
 end
 
 update_frame_size()
