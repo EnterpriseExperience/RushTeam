@@ -51,7 +51,7 @@ CoreGui = get_or_set("CoreGui", safe_wrap("CoreGui"))
 RunService = get_or_set("RunService", safe_wrap("RunService"))
 local parent_gui = CoreGui
 local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/EnterpriseExperience/MicUpSource/refs/heads/main/Notification_Lib.lua"))()
-
+local FL = getgenv().FlamesLibrary
 local function retrieve_executor()
     local name
     if identifyexecutor then
@@ -443,26 +443,7 @@ getgenv().anti_outfit_copier = function(toggle)
     end
 end
 
-local FL = getgenv().FlamesLibrary
-local function safe_require_seat()
-    local ok, result = pcall(function()
-        return require(getgenv().Game_Folder:FindFirstChild("Seat"))
-    end)
-    if ok and result then
-        getgenv().Seat = result
-        return result
-    end
-    return nil
-end
-
 function anti_sit_func(toggle)
-    local seat = safe_require_seat()
-    if not seat then
-        return getgenv().notify("Error", "Failed to load Seat module!", 5)
-    end
-    local seat_set = FL.safe_func(seat.enabled and seat.enabled.set)
-    local hum_set = FL.safe_func(getgenv().Humanoid and getgenv().Humanoid.SetStateEnabled)
-
     if toggle == true then
         if FL.is_alive("anti_sit_loop") then
             return getgenv().notify("Warning", "AntiSit is already enabled!", 5)
@@ -471,14 +452,29 @@ function anti_sit_func(toggle)
         getgenv().Not_Ever_Sitting = true
         getgenv().notify("Success", "Anti-Sit is now enabled!", 5)
         show_notification("Success:", "Anti-Sit is now enabled!", "Normal")
-
         FL.connect("anti_sit_loop", RunService.Heartbeat:Connect(function()
             if not getgenv().Not_Ever_Sitting then
                 FL.disconnect("anti_sit_loop")
                 return
             end
-            pcall(hum_set, getgenv().Humanoid, Enum.HumanoidStateType.Seated, false)
-            pcall(seat_set, false)
+
+            local seat = getgenv().Seat or (function()
+                local ok, result = pcall(function()
+                    return require(getgenv().Game_Folder:FindFirstChild("Seat"))
+                end)
+                if ok and result then
+                    getgenv().Seat = result
+                    return result
+                end
+            end)()
+
+            local hum = getgenv().Humanoid
+            if hum then
+                pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) end)
+            end
+            if seat and seat.enabled and seat.enabled.set then
+                pcall(seat.enabled.set, false)
+            end
         end))
     elseif toggle == false then
         if not FL.is_alive("anti_sit_loop") then
@@ -487,12 +483,21 @@ function anti_sit_func(toggle)
 
         getgenv().Not_Ever_Sitting = false
         FL.disconnect("anti_sit_loop")
-        task.wait(0.1)
-        pcall(hum_set, getgenv().Humanoid, Enum.HumanoidStateType.Seated, true)
-        pcall(seat_set, true)
-        task.wait(0.1)
-        getgenv().notify("Success", "Sitting is now enabled!", 5)
-        show_notification("Success:", "Sitting is now enabled!", "Normal")
+
+        FL.spawn("anti_sit_cleanup", "spawn", function()
+            task.wait(0.1)
+            local hum = getgenv().Humanoid
+            if hum then
+                pcall(function() hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) end)
+            end
+            local seat = getgenv().Seat
+            if seat and seat.enabled and seat.enabled.set then
+                pcall(seat.enabled.set, true)
+            end
+            task.wait(0.1)
+            getgenv().notify("Success", "Sitting is now enabled!", 5)
+            show_notification("Success:", "Sitting is now enabled!", "Normal")
+        end)
     end
 end
 
