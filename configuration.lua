@@ -776,7 +776,7 @@ end
 local FlamesAdmin_Configuration_Main_Frame_For_GUI = Instance.new("Frame")
 FlamesAdmin_Configuration_Main_Frame_For_GUI.Size = UDim2.new(0, 300, 0, 400)
 FlamesAdmin_Configuration_Main_Frame_For_GUI.Position = UDim2.new(0.5, -150, 0.5, -200)
-FlamesAdmin_Configuration_Main_Frame_For_GUI.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+FlamesAdmin_Configuration_Main_Frame_For_GUI.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 FlamesAdmin_Configuration_Main_Frame_For_GUI.BorderSizePixel = 0
 FlamesAdmin_Configuration_Main_Frame_For_GUI.Parent = Flames_Admin_Configuration_ScreenGui
 FlamesAdmin_Configuration_Main_Frame_For_GUI.Active = true
@@ -787,7 +787,7 @@ local Title = Instance.new("TextLabel", FlamesAdmin_Configuration_Main_Frame_For
 Title.Size = UDim2.new(0.850000024, 0, 0, 45)
 Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "✅ Flames Admin | Config 👑"
+Title.Text = "👑 Flames Admin | Config 👑"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 14
