@@ -480,7 +480,6 @@ function anti_sit_func(toggle)
             pcall(hum_set, getgenv().Humanoid, Enum.HumanoidStateType.Seated, false)
             pcall(seat_set, false)
         end))
-
     elseif toggle == false then
         if not FL.is_alive("anti_sit_loop") then
             return getgenv().notify("Warning", "AntiSit is not enabled!", 5)
