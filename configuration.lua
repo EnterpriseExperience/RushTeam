@@ -873,17 +873,15 @@ local function handle_toggle(name, state)
 end
 
 local function create_toggle(name, order)
-    pcall(function()
-        local Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle = Instance.new("TextButton", FlamesAdmin_Configuration_Main_Frame_For_GUI)
-        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Size = UDim2.new(1, -20, 0, 35)
-        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Position = UDim2.new(0, 10, 0, 50 + (order - 1) * 40)
-        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Font = Enum.Font.Gotham
-        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.TextScaled = true
-        Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
-        Instance.new("UICorner", Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle).CornerRadius = UDim.new(0, 8)
-    end)
+    local Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle = Instance.new("TextButton", FlamesAdmin_Configuration_Main_Frame_For_GUI)
+    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Size = UDim2.new(1, -20, 0, 35)
+    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Position = UDim2.new(0, 10, 0, 50 + (order - 1) * 40)
+    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Font = Enum.Font.Gotham
+    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.TextScaled = true
+    Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
+    Instance.new("UICorner", Button_For_Flames_Admin_Configuration_GUI_As_A_Toggle).CornerRadius = UDim.new(0, 8)
 
     if config[name] == "enabled" then
         handle_toggle(name, "enabled")
