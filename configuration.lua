@@ -960,25 +960,25 @@ local function handle_toggle(name, state)
 end
 
 local function create_toggle(name, order)
-    local Button = Instance.new("TextButton", Frame)
-    Button.Size = UDim2.new(1, -20, 0, 35)
-    Button.Position = UDim2.new(0, 10, 0, 50 + (order - 1) * 40)
-    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.Font = Enum.Font.Gotham
-    Button.TextScaled = true
-    Button.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
-    Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 8)
+    if config[name] == "enabled" then handle_toggle(name, "enabled") end
 
-    if config[name] == "enabled" then
-        handle_toggle(name, "enabled")
-    end
-
-    Button.MouseButton1Click:Connect(function()
-        config[name] = (config[name] == "enabled") and "disabled" or "enabled"
+    task.defer(function()
+        local Button = Instance.new("TextButton", Frame)
+        Button.Size = UDim2.new(1, -20, 0, 35)
+        Button.Position = UDim2.new(0, 10, 0, 50 + (order - 1) * 40)
+        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Button.Font = Enum.Font.Gotham
+        Button.TextScaled = true
         Button.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
-        save_config()
-        handle_toggle(name, config[name])
+        Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 8)
+        while not Button do fw() end
+        Button.MouseButton1Click:Connect(function()
+            config[name] = (config[name] == "enabled") and "disabled" or "enabled"
+            Button.Text = name .. ": " .. (config[name] == "enabled" and "ON" or "OFF")
+            save_config()
+            handle_toggle(name, config[name])
+        end)
     end)
 end
 
