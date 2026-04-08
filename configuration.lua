@@ -157,6 +157,7 @@ getgenv().FlamesLibrary.cleanup_all = function()
 end
 
 local lib = getgenv().FlamesLibrary
+local fw = lib.wait
 local function get_or_set(global, value)
     local v = rawget and rawget(getgenv(), global) or getgenv()[global]
     if v == nil then
