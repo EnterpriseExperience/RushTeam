@@ -516,58 +516,79 @@ function RGB_Vehicle(Boolean)
     end
 end
 
-local Old_Bio = getgenv().LocalPlayer:GetAttribute("bio") or "DEFAULT"
-local OUTFIT_KEY = "anti_outfit_stealer"
-getgenv().anti_outfit_copier = getgenv().anti_outfit_copier or function(toggle)
+local View_Outfit_State_Toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit") or true
+fw(0.2)
+local function push_stealer_state(state)
+    getgenv().ws_main_reactor_connector:Send(HttpService:JSONEncode{
+        type = "anti_stealer_state",
+        secret = "flames_hub_2026",
+        user = tostring(getgenv().LocalPlayer.Name),
+        state = state
+    })
+end
+
+getgenv().anti_outfit_copier = function(toggle)
     if toggle == true then
         if getgenv().anti_outfit_stealer then
-            return notify("Warning", "Anti Outfit Stealer is already enabled!", 5)
+            return notify("Error", "Anti Outfit Stealer is already enabled!", 5)
+        end
+        if getgenv().AntiFitStealerConn then
+            return notify("Error", "Anti Outfit Stealer is already enabled! [connection]", 5)
         end
 
-        getgenv().anti_outfit_stealer = true
         notify("Success", "Flames Hub | Anti Outfit Stealer is now active.", 7)
 
-        lib.spawn(OUTFIT_KEY, "spawn", function()
-            while getgenv().anti_outfit_stealer == true do
-                local bio = getgenv().LocalPlayer:GetAttribute("bio")
-                local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
-
-                if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
-                    getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
-                    notify("Success", "Bio changed, reverted change.", 3)
+        local lib = getgenv().FlamesLibrary
+        getgenv().AntiFitStealerConn = nil
+        getgenv().ToggleAntiFit_Stealer = function(state)
+            if not state then
+                getgenv().anti_outfit_stealer = false
+                if getgenv().AntiFitStealerConn then
+                    getgenv().AntiFitStealerConn:Disconnect()
+                    getgenv().AntiFitStealerConn = nil
                 end
+
+                local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
+                if hide_outfit_toggle and hide_outfit_toggle == false then
+                    getgenv().Send("hide_view_outfit", true)
+                    notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
+                end
+
+                push_stealer_state(false)
+                return
+            else
+                getgenv().anti_outfit_stealer = true
+                push_stealer_state(true)
+            end
+
+            getgenv().AntiFitStealerConn = getgenv().RunService.Heartbeat:Connect(function()
+                lib.wait(0.4)
+                local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
 
                 if hide_outfit_toggle and hide_outfit_toggle == false then
                     getgenv().Send("hide_view_outfit", true)
                     notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
                 end
-                fw(0.4)
-            end
-            lib.disconnect(OUTFIT_KEY)
-        end)
+            end)
+        end
+
+        fw(0.1)
+        getgenv().ToggleAntiFit_Stealer(true)
     elseif toggle == false then
         if not getgenv().anti_outfit_stealer then
-            return notify("Warning", "Anti Outfit Copier is not enabled!", 5)
+            return notify("Error", "Anti Outfit Copier is not enabled!", 5)
         end
 
         getgenv().anti_outfit_stealer = false
-        lib.disconnect(OUTFIT_KEY)
-
-        local bio = getgenv().LocalPlayer:GetAttribute("bio")
-        local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
-
-        if bio and bio ~= "Flames Hub Anti Stealer Is Enabled." then
-            getgenv().Send("bio", "Flames Hub Anti Stealer Is Enabled.")
-            notify("Success", "Bio changed, reverted change.", 2)
+        if getgenv().AntiFitStealerConn then
+            getgenv().AntiFitStealerConn:Disconnect()
+            getgenv().AntiFitStealerConn = nil
         end
 
-        if hide_outfit_toggle and hide_outfit_toggle == false then
-            getgenv().Send("hide_view_outfit", true)
-            notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
-        end
-
-        getgenv().Send("bio", tostring(Old_Bio))
+        getgenv().ToggleAntiFit_Stealer(false)
         notify("Success", "Disabled Anti Outfit Stealer.", 5)
+    else
+        return
     end
 end
 
