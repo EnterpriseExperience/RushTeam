@@ -561,14 +561,17 @@ getgenv().anti_outfit_copier = function(toggle)
                 push_stealer_state(true)
             end
 
+            local last_check = 0
             getgenv().AntiFitStealerConn = getgenv().RunService.Heartbeat:Connect(function()
-                lib.wait(0.4)
-                local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
-
-                if hide_outfit_toggle and hide_outfit_toggle == false then
-                    getgenv().Send("hide_view_outfit", true)
-                    notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
-                end
+               local now = tick()
+               if now - last_check < 0.4 then return end
+               last_check = now
+               
+               local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
+               if hide_outfit_toggle and hide_outfit_toggle == false then
+                  getgenv().Send("hide_view_outfit", true)
+                  notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
+               end
             end)
         end
 
