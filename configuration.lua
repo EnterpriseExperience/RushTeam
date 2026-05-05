@@ -1,12 +1,8 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
-
-getgenv().Game = game
-
-if getgenv().FlamesConfigManager then
-	return 
-end
+local g = getgenv()
+g.Game = game
+if getgenv().FlamesConfigManager then return end
 getgenv().FlamesConfigManager = true
-
 local function safe_wrap(service)
     if cloneref then
         return cloneref(game:GetService(service))
@@ -18,9 +14,18 @@ end
 getgenv().FlamesLibrary = getgenv().FlamesLibrary or {}
 getgenv().FlamesLibrary._connections = getgenv().FlamesLibrary._connections or {}
 getgenv().FlamesLibrary.connect = function(name, connection)
-	getgenv().FlamesLibrary._connections[name] = getgenv().FlamesLibrary._connections[name] or {}
-	table.insert(getgenv().FlamesLibrary._connections[name], connection)
-	return connection
+    local existing = getgenv().FlamesLibrary._connections[name]
+    if existing then
+        for _, item in ipairs(existing) do
+            if typeof(item) == "RBXScriptConnection" then
+                pcall(function() item:Disconnect() end)
+            elseif type(item) == "thread" then
+                pcall(task.cancel, item)
+            end
+        end
+    end
+    getgenv().FlamesLibrary._connections[name] = {connection}
+    return connection
 end
 
 getgenv().FlamesLibrary.disconnect = function(name)
@@ -771,102 +776,118 @@ getgenv().job_spammer = getgenv().job_spammer or function(toggle)
     end
 end
 
-if not getgenv().anti_car_fling then
-    local VEHICLE_KEY = "anti_car_fling"
-    local FOLDER_KEY = "anti_car_fling_folder"
-    getgenv().VehicleDestroyer_Enabled = getgenv().VehicleDestroyer_Enabled or false
-    getgenv().vehicle_parts_cache = getgenv().vehicle_parts_cache or {}
-    local function is_in_vehicle(obj, vehicle) return vehicle and obj and obj:IsDescendantOf(vehicle) end
-    local function processPart(part)
-        if not part:IsA("BasePart") then return end
-        if getgenv().vehicle_parts_cache[part] then return end
+g.VehicleDestroyer_Enabled = g.VehicleDestroyer_Enabled or false
+g.vehicle_parts_cache = g.vehicle_parts_cache or {}
+local lib = getgenv().FlamesLibrary
+local _uid = 0
+local function make_key(prefix, inst) _uid = _uid + 1 return prefix .. "_" .. tostring(inst):gsub("[^%w]", "") .. "_" .. _uid end
+local function is_in_vehicle(obj, vehicle) return vehicle and obj and obj:IsDescendantOf(vehicle) end
+local function process_veh_part(part)
+    if not part:IsA("BasePart") then return end
+    if g.vehicle_parts_cache[part] then return end
+    local my_vehicle = get_vehicle and get_vehicle()
+    if my_vehicle and is_in_vehicle(part, my_vehicle) then return end
+    part.CanCollide = false
+    g.vehicle_parts_cache[part] = true
 
-        local my_vehicle = get_vehicle and get_vehicle()
-        if my_vehicle and is_in_vehicle(part, my_vehicle) then return end
+    local key = make_key("VehicleDestroyer_PartCleanup", part)
+    lib.connect(key, part.AncestryChanged:Connect(function()
+        if not part:IsDescendantOf(game) then
+            g.vehicle_parts_cache[part] = nil
+            lib.disconnect(key)
+        end
+    end))
+end
 
-        pcall(function()
-            part.CanCollide = false
-            getgenv().vehicle_parts_cache[part] = true
-        end)
+local function process_veh_model(model)
+    if not model or not model.Parent then
+        local elapsed = 0
+        repeat task.wait(0.5) elapsed = elapsed + 0.5 until (model and model.Parent) or elapsed >= 10
+        if not model or not model.Parent then return end
+    end
+    local key = make_key("VehicleDestroyer_ModelCleanup", model)
+    for _, inst in ipairs(model:GetDescendants()) do
+        if inst:IsA("BasePart") then
+            process_veh_part(inst)
+        end
     end
 
-    local function processModel(model)
-        for _, inst in ipairs(model:GetDescendants()) do
-            processPart(inst)
+    lib.connect(make_key("VehicleDestroyer_DescAdded", model), model.DescendantAdded:Connect(function(desc)
+        if not g.VehicleDestroyer_Enabled then return end
+        if desc:IsA("BasePart") then
+            process_veh_part(desc)
+        end
+    end))
+end
+
+local function setup_vehicles_folder(folder)
+    for _, child in ipairs(folder:GetChildren()) do
+        if child:IsA("Model") then
+            process_veh_model(child)
+        elseif child:IsA("BasePart") then
+            process_veh_part(child)
+        end
+    end
+
+    if lib.is_alive("VehicleDestroyer_ChildAdded") then
+        lib.disconnect("VehicleDestroyer_ChildAdded")
+    end
+
+    lib.connect("VehicleDestroyer_ChildAdded", folder.ChildAdded:Connect(function(child)
+        if not g.VehicleDestroyer_Enabled then return end
+        if child:IsA("Model") then
+            process_veh_model(child)
+        elseif child:IsA("BasePart") then
+            process_veh_part(child)
+        end
+    end))
+
+    if g.notify then
+        g.notify("Success", "Flames Hub | Anti Vehicle Fling is now enabled.", 5)
+    end
+end
+
+local function clear_all()
+   g.VehicleDestroyer_Enabled = false
+   table.clear(g.vehicle_parts_cache)
+   lib.cleanup_all()
+end
+
+g.anti_car_fling = g.anti_car_fling or function(state)
+    if state == true then
+        if g.VehicleDestroyer_Enabled then
+            if g.notify then
+                g.notify("Warning", "Flames Hub | Anti Vehicle Fling is already enabled.", 5)
+            end
+            return
         end
 
-        local model_key = VEHICLE_KEY .. "_model_" .. tostring(model)
-        lib.connect(model_key,
-            model.DescendantAdded:Connect(function(desc)
-                if not getgenv().VehicleDestroyer_Enabled then return end
-                processPart(desc)
-            end)
-        )
+        g.VehicleDestroyer_Enabled = true
+        table.clear(g.vehicle_parts_cache)
 
-        lib.connect(model_key,
-            model.AncestryChanged:Connect(function(_, parent)
-                if not parent then
-                    lib.disconnect(model_key)
-                end
-            end)
-        )
-    end
-
-    local function setupVehiclesFolder(folder)
-        for _, inst in ipairs(folder:GetChildren()) do
-            if inst:IsA("Model") then
-                processModel(inst)
-            elseif inst:IsA("BasePart") then
-                processPart(inst)
-            end
+        local vehicles_folder = Workspace:FindFirstChild("Vehicles")
+        if vehicles_folder then
+            setup_vehicles_folder(vehicles_folder)
         end
 
-        lib.connect(VEHICLE_KEY,
-            folder.ChildAdded:Connect(function(child)
-                if not getgenv().VehicleDestroyer_Enabled then return end
-                if child:IsA("Model") then
-                    processModel(child)
-                elseif child:IsA("BasePart") then
-                    processPart(child)
-                end
-            end)
-        )
-
-        notify("Success", "Anti Vehicle Fling enabled.", 5)
-    end
-
-    function anti_car_fling(state)
-        if state == true then
-            if getgenv().VehicleDestroyer_Enabled then
-                return notify("Warning", "Anti Vehicle Fling already enabled.", 5)
+        lib.connect("VehicleDestroyer_FolderWatch", Workspace.ChildAdded:Connect(function(child)
+            if not g.VehicleDestroyer_Enabled then return end
+            if child.Name == "Vehicles" and child:IsA("Folder") then
+                setup_vehicles_folder(child)
             end
-
-            getgenv().VehicleDestroyer_Enabled = true
-            table.clear(getgenv().vehicle_parts_cache)
-
-            local vehiclesFolder = Workspace:FindFirstChild("Vehicles")
-            if vehiclesFolder then
-                setupVehiclesFolder(vehiclesFolder)
+        end))
+    elseif state == false then
+        if not g.VehicleDestroyer_Enabled then
+            if g.notify then
+                g.notify("Warning", "Anti Vehicle Fling not enabled.", 5)
             end
+            return
+        end
 
-            lib.connect(FOLDER_KEY,
-                Workspace.ChildAdded:Connect(function(child)
-                    if not getgenv().VehicleDestroyer_Enabled then return end
-                    if child.Name == "Vehicles" and child:IsA("Folder") then
-                        setupVehiclesFolder(child)
-                    end
-                end)
-            )
-        elseif state == false then
-            if not getgenv().VehicleDestroyer_Enabled then
-                return notify("Warning", "Anti Vehicle Fling not enabled.", 5)
-            end
+        clear_all()
 
-            getgenv().VehicleDestroyer_Enabled = false
-            table.clear(getgenv().vehicle_parts_cache)
-            lib.disconnect(VEHICLE_KEY)
-            lib.disconnect(FOLDER_KEY)
-            notify("Success", "Anti Vehicle Fling disabled.", 5)
+        if g.notify then
+            g.notify("Success", "Anti Vehicle Fling disabled.", 5)
         end
     end
 end
