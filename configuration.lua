@@ -587,39 +587,41 @@ local function find_seat_module()
 end
 fw(0.2)
 function anti_sit_func(toggle)
-    local lib = getgenv().FlamesLibrary
+    local lib = g.FlamesLibrary
     local key = "anti_sit_loop"
-
-    getgenv().Seat = require(getgenv().Game_Folder:FindFirstChild("Seat"))
+    local fw = lib.wait
+    g.Seat = require(g.Game_Folder:FindFirstChild("Seat"))
 
     if toggle == true then
-        if getgenv().Not_Ever_Sitting then
+        if g.Not_Ever_Sitting then
             return notify("Warning", "AntiSit is already enabled!", 5)
         end
 
-        getgenv().Not_Ever_Sitting = true
-        getgenv().notify("Success", "Anti-Sit is now enabled!", 5)
+        g.Not_Ever_Sitting = true
+        g.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+        g.notify("Success", "Anti-Sit is now enabled!", 5)
         show_notification("Success:", "Anti-Sit is now enabled!", "Normal")
         lib.spawn(key, "spawn", function()
-            while getgenv().Not_Ever_Sitting == true do
-                getgenv().Seat.enabled.set(false)
-                getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+            while g.Not_Ever_Sitting == true do
+                g.Seat.enabled.set(false)
                 fw(0)
             end
             lib.disconnect(key)
         end)
     elseif toggle == false then
-        if not getgenv().Not_Ever_Sitting then
+        if not g.Not_Ever_Sitting then
             return notify("Warning", "AntiSit is not enabled!", 5)
         end
 
-        getgenv().Not_Ever_Sitting = false
+        g.Not_Ever_Sitting = false
         lib.disconnect(key)
+        g.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
         fw(0.2)
-        getgenv().Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
-        getgenv().Seat.enabled.set(true)
+        g.Seat.enabled.set(true)
         notify("Success", "Sitting is now enabled!", 5)
         Phone.show_notification("Success:", "Sitting is now enabled!", "Normal")
+    else
+        return
     end
 end
 
