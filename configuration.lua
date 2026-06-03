@@ -43,32 +43,32 @@ getgenv().FlamesLibrary.disconnect = function(name)
 	end
 end
 
-getgenv().FlamesLibrary.spawn = function(name, mode, func, ...)
-	if not name or not mode or type(func) ~= "function" then
-		return 
-	end
-
-	if getgenv().FlamesLibrary._connections[name] then
-		getgenv().FlamesLibrary.disconnect(name)
-	end
-
+getgenv().FlamesLibrary.spawn = function(name, mode, ...)
+	if not name or not mode then return end
+	if getgenv().FlamesLibrary._connections[name] then getgenv().FlamesLibrary.disconnect(name) end
 	getgenv().FlamesLibrary._connections[name] = {}
 
 	local thread
-
+	local args = {...}
 	if mode == "spawn" then
-		thread = task.spawn(func, ...)
+		local func = args[1]
+		if type(func) ~= "function" then return end
+		thread = task.spawn(func, table.unpack(args, 2))
 	elseif mode == "defer" then
-		thread = task.defer(func, ...)
+		local func = args[1]
+		if type(func) ~= "function" then return end
+		thread = task.defer(func, table.unpack(args, 2))
 	elseif mode == "delay" then
-		local delay_time = ...
-		thread = task.delay(delay_time, func)
+		local delay_time = args[1]
+		local func = args[2]
+		if type(delay_time) ~= "number" or type(func) ~= "function" then return end
+		thread = task.delay(delay_time, func, table.unpack(args, 3))
 	elseif mode == "wrap" then
+		local func = args[1]
+		if type(func) ~= "function" then return end
 		thread = coroutine.create(func)
-		coroutine.resume(thread, ...)
+		coroutine.resume(thread, table.unpack(args, 2))
 	else
-        -- don't really need a warning --
-		-- warn("Invalid spawn mode / argument: "..tostring(mode))
 		return
 	end
 
@@ -172,24 +172,10 @@ local function get_or_set(global, value)
     return v
 end
 
-if not getgenv().All_Services_Initialized then
-    local function exec_ls(url)
-        local FormattedURL = tostring(url)
-
-        return loadstring(game:HttpGet(FormattedURL))()
-    end
-    wait(0.1)
-    if not getgenv().exec_ls then
-        getgenv().exec_ls = exec_ls
-    end
-    wait(0.1)
-    function exec_lib(Name)
-        local Formatted_Library = tostring(Name)
-
-        exec_ls("https://raw.githubusercontent.com/EnterpriseExperience/Script_Framework/main/"..Formatted_Library)
-    end
-    wait(0.3)
-    exec_lib("GlobalEnv_Framework.lua")
+if not g.GlobalEnvironmentFramework_Initialized then
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/dudeididntliterally/Backup_Repo/refs/heads/main/Global_Environment.lua"))()
+   wait(0.1)
+   g.GlobalEnvironmentFramework_Initialized = true
 end
 wait(1)
 HttpService  = get_or_set("HttpService", safe_wrap("HttpService"))
@@ -198,8 +184,7 @@ LocalPlayer = get_or_set("LocalPlayer", Players.LocalPlayer)
 CoreGui = get_or_set("CoreGui", safe_wrap("CoreGui"))
 RunService = get_or_set("RunService", safe_wrap("RunService"))
 local parent_gui = CoreGui
-local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/EnterpriseExperience/MicUpSource/refs/heads/main/Notification_Lib.lua"))()
-
+local NotifyLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/dudeididntliterally/Backup_Repo/refs/heads/main/Notify_Lib.lua"))()
 local function retrieve_executor()
     local name
     if identifyexecutor then
@@ -215,7 +200,6 @@ end
 
 wait(0.1)
 local executor_string = identify_executor()
-
 local function executor_contains(substr)
     if type(executor_string) ~= "string" then
         return false
@@ -522,36 +506,37 @@ function RGB_Vehicle(Boolean)
 end
 
 local View_Outfit_State_Toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit") or true
-fw(0.2)
-local function push_stealer_state(state)
-    getgenv().ws_main_reactor_connector:Send(HttpService:JSONEncode{
-        type = "anti_stealer_state",
-        secret = "flames_hub_2026",
-        user = tostring(getgenv().LocalPlayer.Name),
-        state = state
-    })
-end
-
 getgenv().anti_outfit_copier = function(toggle)
     if toggle == true then
         if getgenv().anti_outfit_stealer then
             return notify("Error", "Anti Outfit Stealer is already enabled!", 5)
         end
-        if getgenv().AntiFitStealerConn then
+        if getgenv().FlamesLibrary.is_alive("AntiFitStealerConn") then
             return notify("Error", "Anti Outfit Stealer is already enabled! [connection]", 5)
         end
 
-        notify("Success", "Flames Hub | Anti Outfit Stealer is now active.", 7)
-
+        g.notify("Success", "Flames Hub | Anti Outfit Stealer is now active.", 7)
         local lib = getgenv().FlamesLibrary
-        getgenv().AntiFitStealerConn = nil
         getgenv().ToggleAntiFit_Stealer = function(state)
             if not state then
                 getgenv().anti_outfit_stealer = false
-                if getgenv().AntiFitStealerConn then
-                    getgenv().AntiFitStealerConn:Disconnect()
-                    getgenv().AntiFitStealerConn = nil
+                lib.disconnect("AntiFitStealerConn")
+                local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
+                if hide_outfit_toggle and hide_outfit_toggle == false then
+                    getgenv().Send("hide_view_outfit", true)
+                    notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
                 end
+            else
+                getgenv().anti_outfit_stealer = true
+                getgenv().Send("bio", "`~ Flames Hub Anti Stealer Is Enabled ~`")
+            end
+
+            local last_check = 0
+            local target_bio = "`~ Flames Hub Anti Stealer Is Enabled ~`"
+            lib.connect("AntiFitStealerConn", getgenv().RunService.Heartbeat:Connect(function()
+                local now = tick()
+                if now - last_check < 0.4 then return end
+                last_check = now
 
                 local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
                 if hide_outfit_toggle and hide_outfit_toggle == false then
@@ -559,27 +544,15 @@ getgenv().anti_outfit_copier = function(toggle)
                     notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
                 end
 
-                push_stealer_state(false)
-                return
-            else
-                getgenv().anti_outfit_stealer = true
-                push_stealer_state(true)
-            end
-
-            local last_check = 0
-            getgenv().AntiFitStealerConn = getgenv().RunService.Heartbeat:Connect(function()
-               local now = tick()
-               if now - last_check < 0.4 then return end
-               last_check = now
-               
-               local hide_outfit_toggle = getgenv().LocalPlayer:GetAttribute("hide_view_outfit")
-               if hide_outfit_toggle and hide_outfit_toggle == false then
-                  getgenv().Send("hide_view_outfit", true)
-                  notify("Success", "hide_view_outfit setting changed, reverted change (keep it on).", 3)
-               end
-            end)
+                if getgenv().anti_outfit_stealer then
+                    local current_bio = getgenv().LocalPlayer:GetAttribute("bio")
+                    if current_bio ~= target_bio then
+                        getgenv().Send("bio", target_bio)
+                        notify("Success", "Bio was changed, reverted back.", 3)
+                    end
+                end
+            end))
         end
-
         fw(0.1)
         getgenv().ToggleAntiFit_Stealer(true)
     elseif toggle == false then
@@ -588,11 +561,7 @@ getgenv().anti_outfit_copier = function(toggle)
         end
 
         getgenv().anti_outfit_stealer = false
-        if getgenv().AntiFitStealerConn then
-            getgenv().AntiFitStealerConn:Disconnect()
-            getgenv().AntiFitStealerConn = nil
-        end
-
+        getgenv().FlamesLibrary.disconnect("AntiFitStealerConn")
         getgenv().ToggleAntiFit_Stealer(false)
         notify("Success", "Disabled Anti Outfit Stealer.", 5)
     else
