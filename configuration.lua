@@ -344,11 +344,7 @@ local function freepay_func(state)
 end
 
 getgenv().set_enrolled_state("enabled")
-
-if not getgenv().FreePayFuncToggle then
-    getgenv().FreePayFuncToggle = freepay_func
-end
-
+if not getgenv().FreePayFuncToggle then getgenv().FreePayFuncToggle = freepay_func end
 function change_vehicle_color(Color, Vehicle)
    getgenv().Send("vehicle_color", Color, Vehicle)
 end
@@ -357,7 +353,7 @@ function change_phone_color(New_Color)
    getgenv().Send("phone_color", New_Color)
 end
 task.wait(0.2)
-getgenv().RGB_Phone = function(Boolean)
+getgenv().RGB_Phone = getgenv().RGB_Phone or function(Boolean)
     local key = "rgb_phone_loop"
     local colors = {
         Color3.fromRGB(255, 255, 255),
@@ -419,18 +415,16 @@ local function ToggleNoclip(toggle)
         getgenv().Noclip_Enabled = true
         notify("Success", "Noclip has been enabled.", 5)
 
-        lib.connect(NOCLIP_KEY,
-            RunService.Stepped:Connect(function()
-                if not getgenv().Noclip_Enabled then return end
-                local char = getgenv().Character
-                if not char then return end
-                for _, part in ipairs(char:GetDescendants()) do
-                    if part:IsA("BasePart") and part.CanCollide then
-                        part.CanCollide = false
-                    end
+        lib.connect(NOCLIP_KEY, RunService.Stepped:Connect(function()
+            if not getgenv().Noclip_Enabled then return end
+            local char = g.Character or g.LocalPlayer.Character or get_char(LocalPlayer, 5) or g.Char:get()
+            if not char then return end
+            for _, part in ipairs(char:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
                 end
-            end)
-        )
+            end
+        end))
     elseif toggle == false then
         if not getgenv().Noclip_Enabled then
             return notify("Error", "Noclip not enabled!", 5)
@@ -438,7 +432,6 @@ local function ToggleNoclip(toggle)
 
         getgenv().Noclip_Enabled = false
         lib.disconnect(NOCLIP_KEY)
-
         local char = getgenv().Character
         if char then
             for _, part in ipairs(char:GetDescendants()) do
@@ -453,9 +446,7 @@ local function ToggleNoclip(toggle)
         return notify("Error", "Invalid arg, expected true/false", 5)
     end
 end
-
 if not getgenv().Toggleable_Noclip then getgenv().Toggleable_Noclip = ToggleNoclip end
-
 function RGB_Vehicle(Boolean)
     local key = "rgb_vehicle_loop"
     local colors = {
@@ -475,12 +466,9 @@ function RGB_Vehicle(Boolean)
     }
 
     if Boolean == true then
-        if getgenv().Rainbow_Vehicle then
-            return notify("Warning", "Rainbow Vehicle is already enabled.", 5)
-        end
-
+        if getgenv().Rainbow_Vehicle then return notify("Warning", "Flames Hub | Rainbow Vehicle is already enabled.", 5) end
         getgenv().Rainbow_Vehicle = true
-        getgenv().notify("Success", "[Enabled]: Rainbow Vehicle.", 5)
+        getgenv().notify("Success", "Flames Hub | Rainbow Vehicle is now enabled.", 5)
         lib.spawn(key, "spawn", function()
             while getgenv().Rainbow_Vehicle == true do
                 for _, color in ipairs(colors) do
@@ -488,20 +476,17 @@ function RGB_Vehicle(Boolean)
                         lib.disconnect(key)
                         return
                     end
-                    change_vehicle_color(color, get_vehicle())
+                    if getgenv().change_vehicle_color and getgenv().get_vehicle then change_vehicle_color(color, get_vehicle()) end
                     fw(0)
                 end
             end
             lib.disconnect(key)
         end)
     elseif Boolean == false then
-        if not getgenv().Rainbow_Vehicle then
-            return notify("Warning", "Rainbow Vehicle is not enabled.", 5)
-        end
-
+        if not getgenv().Rainbow_Vehicle then return notify("Warning", "Flames Hub | Rainbow Vehicle is not enabled.", 5) end
         getgenv().Rainbow_Vehicle = false
         lib.disconnect(key)
-        notify("Success", "[Disabled]: Rainbow Vehicle.", 4)
+        notify("Success", "Flames Hub | Rainbow Vehicle is now disabled.", 5)
     end
 end
 
@@ -569,7 +554,6 @@ getgenv().anti_outfit_copier = function(toggle)
     end
 end
 
-local is_enabled
 local function find_seat_module()
     for _, obj in pairs(getgc(true)) do
         if typeof(obj) == "table" then
@@ -585,7 +569,7 @@ local function find_seat_module()
         end
     end
 end
-fw(0.2)
+task.wait(0.2)
 function anti_sit_func(toggle)
     local lib = g.FlamesLibrary
     local key = "anti_sit_loop"
@@ -627,25 +611,14 @@ end
 
 function anti_void(toggle)
     if toggle == true then
-        if getgenv().Anti_Void_Enabled_Bool then
-            return notify("Warning", "Anti-Void is already enabled!", 5)
-        end
-        if not getgenv().originalFPDH then
-            getgenv().originalFPDH = getgenv().Workspace.FallenPartsDestroyHeight
-        end
-
+        if getgenv().Anti_Void_Enabled_Bool then return notify("Warning", "Anti-Void is already enabled!", 5) end
+        if not getgenv().originalFPDH then getgenv().originalFPDH = getgenv().Workspace.FallenPartsDestroyHeight end
         getgenv().Workspace.FallenPartsDestroyHeight = -9e9
         getgenv().Anti_Void_Enabled_Bool = true
         notify("Success", "Enabled anti-void.", 5)
     elseif toggle == false then
-        if not getgenv().Anti_Void_Enabled_Bool then
-            return notify("Warning", "Anti-Void has not been enabled!", 5)
-        end
-        if not getgenv().originalFPDH then
-            getgenv().originalFPDH = -500
-            return notify("Error", "Original FPDH didn't exist at runtime, try this command again!", 6)
-        end
-
+        if not getgenv().Anti_Void_Enabled_Bool then return notify("Warning", "Anti-Void has not been enabled!", 5) end
+        if not getgenv().originalFPDH then getgenv().originalFPDH = -500 return notify("Error", "Original FPDH didn't exist at runtime, try this command again!", 6) end
         getgenv().Workspace.FallenPartsDestroyHeight = getgenv().originalFPDH
         getgenv().Anti_Void_Enabled_Bool = false
         notify("Success", "Disabled anti-void.", 5)
@@ -654,56 +627,44 @@ end
 
 local VEHICLE_KEY = "vehicle_destroyer"
 getgenv().VehicleDestroyer_Enabled = getgenv().VehicleDestroyer_Enabled or false
-local function disableCollisionIn(folder)
+local function disable_collision_in(folder)
     local plrsvehicle = get_vehicle()
     for _, obj in ipairs(folder:GetDescendants()) do
         if obj:IsA("BasePart") and obj.CanCollide then
-            if not plrsvehicle or not obj:IsDescendantOf(plrsvehicle) then
-                obj.CanCollide = false
-            end
+            if not plrsvehicle or not obj:IsDescendantOf(plrsvehicle) then obj.CanCollide = false end
         end
     end
 end
 
 local function setupFolder(folder)
-    disableCollisionIn(folder)
-    notify("Success", "Anti Vehicle Fling has been enabled.", 5)
-
-    lib.connect(VEHICLE_KEY,
-        folder.ChildAdded:Connect(function(child)
-            if not getgenv().VehicleDestroyer_Enabled then return end
-
-            if child:IsA("BasePart") then
-                child.CanCollide = false
-            elseif child:IsA("Model") then
-                local plrsvehicle = get_vehicle()
-
-                lib.connect(VEHICLE_KEY,
-                    child.DescendantAdded:Connect(function(desc)
-                        if desc:IsA("BasePart") then
-                            if not plrsvehicle or not desc:IsDescendantOf(plrsvehicle) then
-                                desc.CanCollide = false
-                            end
-                        end
-                    end)
-                )
-
-                disableCollisionIn(child)
-            end
-        end)
-    )
+    disable_collision_in(folder)
+    g.notify("Success", "Anti Vehicle Fling has been enabled.", 5)
+    lib.connect(VEHICLE_KEY, folder.ChildAdded:Connect(function(child)
+        if not getgenv().VehicleDestroyer_Enabled then return end
+        if child:IsA("BasePart") then
+            child.CanCollide = false
+        elseif child:IsA("Model") then
+            local plrsvehicle = get_vehicle()
+            lib.connect(VEHICLE_KEY, child.DescendantAdded:Connect(function(desc)
+                if desc:IsA("BasePart") then
+                    if not plrsvehicle or not desc:IsDescendantOf(plrsvehicle) then
+                        desc.CanCollide = false
+                    end
+                end
+            end))
+            disable_collision_in(child)
+        end
+    end))
 end
 
-if not getgenv().DisableVehicleDestroyer then
-    getgenv().DisableVehicleDestroyer = function()
-        if not getgenv().VehicleDestroyer_Enabled then
-            return notify("Warning", "Anti Vehicle Fling is not enabled!", 5)
-        end
-        fw(0.1)
-        getgenv().VehicleDestroyer_Enabled = false
-        lib.disconnect(VEHICLE_KEY)
-        notify("Success", "Anti Vehicle Fling has been disabled.", 5)
+getgenv().DisableVehicleDestroyer = function()
+    if not getgenv().VehicleDestroyer_Enabled then
+        return notify("Warning", "Anti Vehicle Fling is not enabled!", 5)
     end
+    fw(0.1)
+    getgenv().VehicleDestroyer_Enabled = false
+    lib.disconnect(VEHICLE_KEY)
+    notify("Success", "Anti Vehicle Fling has been disabled.", 5)
 end
 
 getgenv().job_spammer = getgenv().job_spammer or function(toggle)
@@ -711,13 +672,9 @@ getgenv().job_spammer = getgenv().job_spammer or function(toggle)
     local key = "job_spammer_loop"
 
     if toggle == true then
-        if getgenv().Every_Job then
-            return notify("Warning", "Job spammer is already enabled! disable it first.", 5)
-        end
-
+        if getgenv().Every_Job then return notify("Warning", "Job-Spammer is already enabled! disable it first.", 5) end
         getgenv().Every_Job = true
-        notify("Success", "Job Spammer has been enabled.", 5)
-
+        g.notify("Success", "Job-Spammer is now enabled.", 3)
         lib.spawn(key, "spawn", function()
             while getgenv().Every_Job == true do
             fw(0)
@@ -737,13 +694,10 @@ getgenv().job_spammer = getgenv().job_spammer or function(toggle)
             lib.disconnect(key)
         end)
     elseif toggle == false then
-        if not getgenv().Every_Job then
-            return notify("Warning", "Job spammer is not enabled! enable it first.", 5)
-        end
-
+        if not getgenv().Every_Job then return notify("Warning", "Job-Spammer is not enabled!", 5) end
         getgenv().Every_Job = false
         lib.disconnect(key)
-        notify("Success", "Job Spammer has been disabled.", 5)
+        notify("Success", "Job-Spammer is now disabled.", 3)
     end
 end
 
@@ -813,9 +767,7 @@ local function setup_vehicles_folder(folder)
         end
     end))
 
-    if g.notify then
-        g.notify("Success", "Flames Hub | Anti Vehicle Fling is now enabled.", 5)
-    end
+    if g.notify then g.notify("Success", "Flames Hub | Anti Vehicle Fling is now enabled.", 5) end
 end
 
 local function clear_all()
@@ -830,17 +782,13 @@ g.anti_car_fling = g.anti_car_fling or function(state)
             if g.notify then
                 g.notify("Warning", "Flames Hub | Anti Vehicle Fling is already enabled.", 5)
             end
-            return
+            return 
         end
 
         g.VehicleDestroyer_Enabled = true
         table.clear(g.vehicle_parts_cache)
-
         local vehicles_folder = Workspace:FindFirstChild("Vehicles")
-        if vehicles_folder then
-            setup_vehicles_folder(vehicles_folder)
-        end
-
+        if vehicles_folder then setup_vehicles_folder(vehicles_folder) end
         lib.connect("VehicleDestroyer_FolderWatch", Workspace.ChildAdded:Connect(function(child)
             if not g.VehicleDestroyer_Enabled then return end
             if child.Name == "Vehicles" and child:IsA("Folder") then
@@ -852,21 +800,15 @@ g.anti_car_fling = g.anti_car_fling or function(state)
             if g.notify then
                 g.notify("Warning", "Anti Vehicle Fling not enabled.", 5)
             end
-            return
+            return 
         end
 
         clear_all()
-
-        if g.notify then
-            g.notify("Success", "Anti Vehicle Fling disabled.", 5)
-        end
+        if g.notify then g.notify("Success", "Anti Vehicle Fling disabled.", 5) end
     end
 end
 
-if not isfile(config_path) then
-   writefile(config_path, HttpService:JSONEncode(default_config))
-end
-
+if not isfile(config_path) then writefile(config_path, HttpService:JSONEncode(default_config)) end
 local config = HttpService:JSONDecode(readfile(config_path))
 local function save_config() writefile(config_path, HttpService:JSONEncode(config)) end
 if config.Enrolled ~= "enabled" then return  end
@@ -890,7 +832,7 @@ local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(0.850000024, 0, 0, 45)
 Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "✅ Flames Admin | Config 👑"
+Title.Text = "🔥 Flames Admin | Config 🔥"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 14
@@ -910,7 +852,6 @@ Close.MouseButton1Click:Connect(function()
 end)
 
 getgenv().Flames_Features = getgenv().Flames_Features or {}
-
 local function handle_toggle(name, state)
     if name == "RainbowVehicle" then
         if state == "enabled" then
@@ -932,9 +873,9 @@ local function handle_toggle(name, state)
         end
     elseif name == "AntiFling" then
         if state == "enabled" then
-            getgenv().Toggle_AntiFling_Boolean_Func(true)
+            if getgenv().Toggle_AntiFling_Boolean_Func then getgenv().Toggle_AntiFling_Boolean_Func(true) end
         else
-            getgenv().Toggle_AntiFling_Boolean_Func(false)
+            if getgenv().Toggle_AntiFling_Boolean_Func then getgenv().Toggle_AntiFling_Boolean_Func(false) end
         end
     elseif name == "AntiVoid" then
         if state == "enabled" then
@@ -944,9 +885,9 @@ local function handle_toggle(name, state)
         end
     elseif name == "NoClip" then
         if state == "enabled" then
-            getgenv().Toggleable_Noclip(true)
+            if getgenv().Toggleable_Noclip then getgenv().Toggleable_Noclip(true) end
         else
-            getgenv().Toggleable_Noclip(false)
+            if getgenv().Toggleable_Noclip then getgenv().Toggleable_Noclip(false) end
         end
     elseif name == "NoSit" then
         if state == "enabled" then
@@ -977,7 +918,6 @@ end
 
 local function create_toggle(name, order)
     if config[name] == "enabled" then handle_toggle(name, "enabled") end
-
     task.defer(function()
         local Button = Instance.new("TextButton", Frame)
         Button.Size = UDim2.new(1, -20, 0, 35)
@@ -999,14 +939,6 @@ local function create_toggle(name, order)
 end
 
 local toggles = {"RainbowVehicle", "RainbowPhone", "AntiCarFling", "AntiFling", "AntiVoid", "NoClip", "NoSit", "AntiOutfitStealer", "JobSpammer", "FreePremium"}
-
-local function update_frame_size()
-   local total_height = 50 + (#toggles * 40) + 10
-   Frame.Size = UDim2.new(0, 300, 0, total_height)
-end
-
-for i, t in ipairs(toggles) do
-   create_toggle(t, i)
-end
-
+local function update_frame_size() local total_height = 50 + (#toggles * 40) + 10 Frame.Size = UDim2.new(0, 300, 0, total_height) end
+for i, t in ipairs(toggles) do create_toggle(t, i) end
 update_frame_size()
