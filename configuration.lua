@@ -278,7 +278,6 @@ function get_enrolled_state()
 end
 wait(0.1)
 getgenv().get_enrolled_state = get_enrolled_state
-
 if not getgenv().FreePay_Originals then getgenv().FreePay_Originals = {} end
 local originals = getgenv().FreePay_Originals
 local function freepay_func(state)
@@ -293,7 +292,7 @@ local function freepay_func(state)
         return notify("Error", "Executor does not support getupvalue.", 5)
     end
     if not ReplicatedStorage then
-        return notify("Error", "ReplicatedStorage missing.", 5)
+        return notify("Error", "ReplicatedStorage is missing.", 3)
     end
 
     if state == nil then
@@ -313,13 +312,20 @@ local function freepay_func(state)
             end
         end
 
+        for _, v in ipairs(ReplicatedStorage:GetDescendants()) do
+            local val = v:GetAttribute("IsAirportRestricted")
+            if val ~= nil then
+                originals[v] = val
+                v:SetAttribute("IsAirportRestricted", false)
+            end
+        end
+
         pcall(function()
             local update = debug.getupvalue(Data.initiate, 2)
             local _, original = Data.initiate("is_verified")
             originals["_is_verified"] = original
             update("is_verified", true)
         end)
-
         getgenv().Has_Free_LifePremium = true
         notify("Success", "FreePay is now enabled.", 5)
     else
